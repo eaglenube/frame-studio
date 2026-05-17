@@ -11,6 +11,8 @@
   var totalCountEl = document.getElementById('totalCount');
   var toggleAllBtn = document.getElementById('toggleAllBtn');
   var downloadBtn = document.getElementById('downloadBtn');
+  var saveDriveBtn = document.getElementById('saveDriveBtn');
+  var lightboxDriveBtn = document.getElementById('lightboxDriveBtn');
 
   // Lightbox refs
   var lightbox = document.getElementById('lightbox');
@@ -54,6 +56,7 @@
     selectedCountEl.textContent = String(selected.size);
     totalCountEl.textContent = String(total);
     downloadBtn.disabled = selected.size === 0;
+    if (saveDriveBtn) saveDriveBtn.disabled = selected.size === 0;
   }
 
   function setCardSelected(id, isSelected) {
@@ -294,6 +297,79 @@
         downloadBtn.innerHTML = original;
       });
   });
+
+  // ---------- Save to Google Drive ----------
+
+  function saveImagesToDrive(imageIds, label, triggerBtn) {
+    if (!imageIds || imageIds.length === 0) return;
+    if (!window.FS || !FS.drive) {
+      FS.toast('Drive integration is not available.', 'danger');
+      return;
+    }
+
+    var originalHtml = triggerBtn ? triggerBtn.innerHTML : null;
+    var setBusy = function (busy, text) {
+      if (!triggerBtn) return;
+      if (busy) {
+        triggerBtn.disabled = true;
+        triggerBtn.innerHTML = '<span class="spinner-inline"></span> ' + text;
+      } else {
+        triggerBtn.disabled = imageIds.length === 0;
+        if (originalHtml !== null) triggerBtn.innerHTML = originalHtml;
+      }
+    };
+
+    setBusy(true, 'Opening Drive…');
+
+    FS.drive
+      .pickFolder()
+      .then(function (folder) {
+        if (!folder) {
+          setBusy(false);
+          return null;
+        }
+        setBusy(true, 'Uploading to "' + folder.name + '"…');
+        return FS.drive.save(jobId, imageIds, folder.id).then(function (res) {
+          if (res.ok) {
+            FS.toast(
+              'Saved ' + res.uploaded + ' ' + label + ' to "' + folder.name + '".',
+              'success'
+            );
+          } else {
+            FS.toast(
+              'Saved ' + res.uploaded + ' of ' + res.total +
+                ' — ' + res.failed + ' failed.',
+              'danger'
+            );
+          }
+        });
+      })
+      .catch(function (err) {
+        FS.toast(err.message || 'Drive save failed.', 'danger');
+      })
+      .finally(function () {
+        setBusy(false);
+      });
+  }
+
+  if (saveDriveBtn) {
+    saveDriveBtn.addEventListener('click', function () {
+      if (selected.size === 0) return;
+      saveImagesToDrive(
+        Array.from(selected),
+        selected.size === 1 ? 'image' : 'images',
+        saveDriveBtn
+      );
+    });
+  }
+
+  if (lightboxDriveBtn) {
+    lightboxDriveBtn.addEventListener('click', function () {
+      var img = allImages[lbIndex];
+      if (!img) return;
+      saveImagesToDrive([img.id], 'image', lightboxDriveBtn);
+    });
+  }
 
   updateSelection();
   fetchPage();

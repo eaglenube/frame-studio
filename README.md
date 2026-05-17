@@ -2,11 +2,13 @@
 
 A small, production-ready web app that lets you upload a video, choose extraction
 options (FPS, quality, format, resize), watch a live progress bar, browse the
-extracted frames in a gallery, and download any subset of them as a ZIP.
+extracted frames in a gallery, download any subset as a ZIP, **or save selected
+frames directly to a folder in your Google Drive**.
 
-Built with Express 5, Sequelize 6 (PostgreSQL), EJS, Bootstrap 5, and
-`fluent-ffmpeg` powered by the bundled `@ffmpeg-installer/ffmpeg` binary — so you
-don't need to install FFmpeg system-wide.
+Built with Express 5, Sequelize 6 (PostgreSQL), EJS, Bootstrap 5, Passport
+("Sign in with Google"), the Google Drive API, and `fluent-ffmpeg` powered by the
+bundled `@ffmpeg-installer/ffmpeg` binary — so you don't need to install FFmpeg
+system-wide.
 
 ---
 
@@ -25,8 +27,8 @@ That's it. FFmpeg ships inside `node_modules` automatically.
 # 1. Install dependencies
 npm install
 
-# 2. Edit .env to match your PostgreSQL credentials
-#    (defaults: localhost:5432, user/pass = kumolus_dev, db = vdo_to_img_web_dev)
+# 2. Edit .env to match your PostgreSQL credentials and (optionally) Google
+#    OAuth credentials. See "Connecting Google Drive" below.
 
 # 3. Create the database (one-time)
 npm run db:create
@@ -38,7 +40,9 @@ npm run db:migrate
 npm run dev
 ```
 
-Then open <http://localhost:3000>.
+Then open <http://localhost:3000>. You'll be redirected to the sign-in page —
+click **Continue with Google** to sign in. (If Google OAuth isn't configured yet,
+the sign-in page tells you what's missing.)
 
 For production-style start (no auto-reload):
 
@@ -48,17 +52,101 @@ npm start
 
 ---
 
+## Connecting Google Drive (one-time setup)
+
+Frame Studio uses "Sign in with Google" as the login method, and the **same
+authorization** also grants the app permission to save files to your Drive. You
+must register the app once in Google Cloud Console to get the credentials.
+
+### 1. Create a Google Cloud project
+
+1. Go to <https://console.cloud.google.com/projectcreate> and create a new
+   project (any name, e.g. *Frame Studio*).
+
+### 2. Enable the required APIs
+
+In the new project, open **APIs & Services → Library** and enable:
+
+- **Google Drive API**
+- **Google Picker API**
+
+### 3. Configure the OAuth consent screen
+
+**APIs & Services → OAuth consent screen**:
+
+- User type: **External** (or Internal if you have Google Workspace)
+- App name: *Frame Studio*
+- User support email: your email
+- Developer contact: your email
+- **Scopes**: add
+  - `openid`
+  - `.../auth/userinfo.email`
+  - `.../auth/userinfo.profile`
+  - `https://www.googleapis.com/auth/drive.file`
+- **Test users**: add your own Google account email (required while the app is
+  in *Testing* mode)
+
+### 4. Create an OAuth 2.0 client ID
+
+**APIs & Services → Credentials → + Create credentials → OAuth client ID**:
+
+- Application type: **Web application**
+- Name: *Frame Studio Web Client*
+- **Authorized JavaScript origins**: `http://localhost:3000`
+- **Authorized redirect URIs**: `http://localhost:3000/auth/google/callback`
+
+Copy the **Client ID** and **Client secret** that appear.
+
+### 5. Create an API key (for the Picker)
+
+**APIs & Services → Credentials → + Create credentials → API key**:
+
+- Click **Edit API key**
+- Under **API restrictions**, restrict the key to: **Google Picker API**
+- Under **Application restrictions** (recommended), restrict to *HTTP referrers*
+  and add `http://localhost:3000/*`
+
+Copy the key.
+
+### 6. (Optional) Note your project number
+
+**Cloud Console → Home → Project info** → copy the **Project number**. This is
+the `appId` used by the Picker.
+
+### 7. Drop the values into `.env`
+
+```env
+APP_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=<paste step 4 client id>
+GOOGLE_CLIENT_SECRET=<paste step 4 client secret>
+GOOGLE_API_KEY=<paste step 5 api key>
+GOOGLE_APP_ID=<paste step 6 project number, or leave blank>
+```
+
+Then restart the server. Visit <http://localhost:3000>, sign in with Google,
+extract some frames, select a few, and click **Save to Drive** in the gallery —
+the Google Picker opens, you pick a folder, and the images land there.
+
+---
+
 ## How to use
 
-1. **Upload** — drag a video onto the home page or click to browse. Supported
+1. **Sign in with Google** — first visit redirects you to the login page.
+2. **Upload** — drag a video onto the home page or click to browse. Supported
    formats: MP4, MOV, AVI, MKV, WEBM. Max size is set in `.env` (default 500 MB).
-2. **Options** — choose frames-per-second (0.1–30), image quality (1–10),
+3. **Options** — choose frames-per-second (0.1–30), image quality (1–10),
    output format (JPG/PNG), and an optional resize width.
-3. **Progress** — watch the bar fill as FFmpeg extracts. The page polls the
+4. **Progress** — watch the bar fill as FFmpeg extracts. The page polls the
    server once a second.
-4. **Gallery** — when extraction finishes you're redirected to a grid view.
-   Click cards to select, "Load more" to paginate, and "Download selected
-   (ZIP)" to grab a zipped archive of just the frames you want.
+5. **Gallery** — when extraction finishes you're redirected to a grid view.
+   - Click thumbnail cards to select them.
+   - Click the fullscreen icon on any thumbnail to open the **lightbox preview**
+     (use ←/→ to navigate, `Esc` to close, `Space` to select).
+   - **Download selected (ZIP)** — zips the selection and saves locally.
+   - **Save to Drive** — opens the Google Picker, lets you pick a folder, and
+     uploads each selected frame into that folder.
+   - In the lightbox, **Download** saves the single frame; **Save to Drive**
+     saves just that one image.
 
 ---
 
@@ -123,6 +211,24 @@ video-to-image-app/
 - Uploaded videos: `public/uploads/{uuid}.{ext}`
 - Extracted frames: `public/extracted/{jobId}/frame-XXXXXX.{jpg|png}`
 - Both directories are git-ignored — safe to delete to reclaim space.
+
+### "Sign in with Google" loops or shows "access_denied"
+- Confirm the OAuth client's **Authorized redirect URI** exactly matches
+  `http://localhost:3000/auth/google/callback` (scheme, host, port, path).
+- While the consent screen is in *Testing* mode, only the **Test users** you
+  added in the consent screen step can sign in.
+- Make sure the **Google Drive API** is enabled.
+
+### "Save to Drive" button does nothing / picker errors
+- Make sure both `GOOGLE_API_KEY` is set in `.env` and the key is restricted to
+  the **Google Picker API**.
+- Check the browser console — most failures here are HTTP referrer restrictions
+  on the API key (allow `http://localhost:3000/*`).
+
+### Drive upload fails with "Login Required" or 401
+- The stored access token may have expired and your account has no refresh
+  token. Sign out, then sign in again — the consent screen will mint a new
+  refresh token.
 
 ---
 

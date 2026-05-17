@@ -55,6 +55,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
+      userId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
     },
     {
       tableName: 'jobs',
@@ -66,6 +70,11 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'jobId',
       as: 'images',
       onDelete: 'CASCADE',
+    });
+    Job.belongsTo(models.User, {
+      foreignKey: 'userId',
+      as: 'user',
+      onDelete: 'SET NULL',
     });
   };
 

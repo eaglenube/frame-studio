@@ -7,11 +7,13 @@ const fs = require('fs');
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
+const passport = require('passport');
 const ejsLayouts = require('express-ejs-layouts');
 
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 const routes = require('./routes');
 const db = require('./models');
+const { configurePassport } = require('./config/passport');
 
 const app = express();
 
@@ -43,18 +45,24 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      maxAge: 1000 * 60 * 60 * 24 * 7,
     },
   })
 );
+
+// Passport
+configurePassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Static assets
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Locals exposed to all views
 app.use((req, res, next) => {
-  res.locals.title = 'Video to Image';
+  res.locals.title = 'Frame Studio';
   res.locals.activeNav = '';
+  res.locals.currentUser = req.user || null;
   next();
 });
 

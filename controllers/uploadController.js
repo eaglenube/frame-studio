@@ -65,6 +65,7 @@ async function handleUpload(req, res, next) {
       format: 'jpg',
       status: 'pending',
       progress: 0,
+      userId: (req.user && req.user.id) || null,
     });
 
     res.status(201).json({

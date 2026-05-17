@@ -6,11 +6,40 @@
       </span>
       <span class="brand-name">Frame Studio</span>
     </a>
-    <nav class="app-nav d-none d-md-flex">
-      <a href="/" class="nav-link">
-        <i class="bi bi-cloud-upload"></i>
-        <span>New Extraction</span>
-      </a>
+    <nav class="app-nav d-flex align-items-center gap-2">
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <a href="/" class="nav-link d-none d-md-inline-flex">
+          <i class="bi bi-cloud-upload"></i>
+          <span>New Extraction</span>
+        </a>
+        <div class="user-chip dropdown">
+          <button class="user-chip-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <% if (currentUser.picture) { %>
+              <img src="<%= currentUser.picture %>" alt="" referrerpolicy="no-referrer" />
+            <% } else { %>
+              <span class="user-chip-initial"><%= (currentUser.name || currentUser.email || '?').charAt(0).toUpperCase() %></span>
+            <% } %>
+            <span class="user-chip-name d-none d-sm-inline"><%= currentUser.name || currentUser.email %></span>
+            <i class="bi bi-chevron-down ms-1"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow user-menu">
+            <li class="px-3 py-2">
+              <div class="user-menu-name"><%= currentUser.name || 'Account' %></div>
+              <div class="user-menu-email"><%= currentUser.email %></div>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item" href="/logout">
+                <i class="bi bi-box-arrow-right me-2"></i> Sign out
+              </a>
+            </li>
+          </ul>
+        </div>
+      <% } else { %>
+        <a href="/login" class="btn btn-outline-primary btn-pill btn-sm">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Sign in
+        </a>
+      <% } %>
     </nav>
   </div>
 </header>
