@@ -9,10 +9,12 @@ const DRIVE_SCOPES = [
   'openid',
   'email',
   'profile',
+  // Lets us create files in the user's Drive (Save-to-Drive uploads).
   'https://www.googleapis.com/auth/drive.file',
-  // Read-only metadata access lets us list the user's existing folders for the
-  // custom folder explorer. We never read file contents, only names/IDs.
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
+  // Read-only access to the user's files — used to browse folders for both
+  // the Save-to-Drive destination picker and the Import-from-Drive video
+  // picker, plus to download chosen videos for extraction.
+  'https://www.googleapis.com/auth/drive.readonly',
 ];
 
 function configurePassport() {

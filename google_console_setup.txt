@@ -58,7 +58,7 @@ Follow the steps below in order.
     .../auth/userinfo.email
     .../auth/userinfo.profile
     https://www.googleapis.com/auth/drive.file
-    https://www.googleapis.com/auth/drive.metadata.readonly
+    https://www.googleapis.com/auth/drive.readonly
 
   Click UPDATE, then SAVE AND CONTINUE.
 
@@ -137,10 +137,11 @@ Follow the steps below in order.
        http://localhost:3000/auth/google/callback
      (no trailing slash, no https, no different port)
 
-Folder explorer is empty or says "Insufficient Permission"
+Folder explorer / Drive video picker says "Insufficient Permission"
   -  You signed in with the old scope set. Sign out of Frame
-     Studio and sign in again to grant the new
-     drive.metadata.readonly scope.
+     Studio and sign in again to grant the new drive.readonly
+     scope (used for listing folders AND downloading the video
+     you import).
 
 "Login Required" or 401 when saving to Drive
   -  Sign out of Frame Studio and sign in again. This mints a

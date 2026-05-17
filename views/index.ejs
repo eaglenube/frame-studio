@@ -7,41 +7,93 @@
     Turn any video into <span class="gradient-text">crisp still frames</span>.
   </h1>
   <p class="hero-sub">
-    Drop a clip, choose a frame rate, and download exactly the moments you need.
-    No installs, no command line, no friction.
+    Drop a clip from your computer or pick one straight from Google Drive,
+    choose a frame rate, and download exactly the moments you need.
   </p>
 </section>
 
 <form id="uploadForm" class="upload-card" novalidate>
-  <div id="dropzone" class="dropzone" tabindex="0">
-    <input
-      type="file"
-      id="videoInput"
-      name="video"
-      accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
-      hidden
-    />
-    <div class="dropzone-inner" id="dropzoneIdle">
-      <div class="dropzone-icon">
-        <i class="bi bi-cloud-arrow-up-fill"></i>
+  <div class="source-tabs" role="tablist">
+    <button type="button" class="source-tab is-active" data-source="local" role="tab" aria-selected="true">
+      <i class="bi bi-laptop"></i>
+      <span>From your computer</span>
+    </button>
+    <button type="button" class="source-tab" data-source="drive" role="tab" aria-selected="false">
+      <svg width="16" height="16" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path fill="#0066da" d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5z"/>
+        <path fill="#00ac47" d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 000 53h27.5z"/>
+        <path fill="#ea4335" d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.5z"/>
+        <path fill="#00832d" d="M43.65 25L57.4 1.2A8.84 8.84 0 0052.9 0H34.4c-1.55 0-3.1.45-4.5 1.2z"/>
+        <path fill="#2684fc" d="M59.8 53H27.5L13.75 76.8c1.4.8 2.95 1.2 4.5 1.2h50.8c1.55 0 3.1-.45 4.5-1.2z"/>
+        <path fill="#ffba00" d="M73.4 26.5l-12.7-22a9.06 9.06 0 00-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+      </svg>
+      <span>From Google Drive</span>
+    </button>
+  </div>
+
+  <div class="source-panel" data-source="local">
+    <div id="dropzone" class="dropzone" tabindex="0">
+      <input
+        type="file"
+        id="videoInput"
+        name="video"
+        accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
+        hidden
+      />
+      <div class="dropzone-inner" id="dropzoneIdle">
+        <div class="dropzone-icon">
+          <i class="bi bi-cloud-arrow-up-fill"></i>
+        </div>
+        <h3 class="dropzone-title">Drop a video here</h3>
+        <p class="dropzone-sub">
+          or <button type="button" id="pickFileBtn" class="link-btn">click to browse</button>
+        </p>
+        <ul class="dropzone-meta">
+          <li><i class="bi bi-check2"></i> MP4 · MOV · AVI · MKV · WEBM</li>
+          <li><i class="bi bi-check2"></i> Up to <%= maxUploadMb %> MB</li>
+        </ul>
       </div>
-      <h3 class="dropzone-title">Drop a video here</h3>
-      <p class="dropzone-sub">
-        or <button type="button" id="pickFileBtn" class="link-btn">click to browse</button>
+
+      <div class="dropzone-file" id="dropzoneFile" hidden>
+        <div class="file-icon"><i class="bi bi-file-earmark-play"></i></div>
+        <div class="file-info">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size text-muted" id="fileSize"></div>
+        </div>
+        <button type="button" class="btn-icon" id="clearFile" aria-label="Remove file">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="source-panel" data-source="drive" hidden>
+    <div class="drive-source" id="driveSourceIdle">
+      <div class="drive-source-icon">
+        <i class="bi bi-cloud-download-fill"></i>
+      </div>
+      <h3 class="drive-source-title">Pick a video from your Google Drive</h3>
+      <p class="drive-source-sub">
+        Browse your folders, choose a video, and we'll pull it in for you.
       </p>
-      <ul class="dropzone-meta">
-        <li><i class="bi bi-check2"></i> MP4 · MOV · AVI · MKV · WEBM</li>
-        <li><i class="bi bi-check2"></i> Up to <%= maxUploadMb %> MB</li>
-      </ul>
+      <button type="button" id="browseDriveBtn" class="btn btn-outline-primary btn-pill">
+        <i class="bi bi-folder2-open me-1"></i> Browse Drive
+      </button>
+      <% if (!currentUser) { %>
+        <div class="drive-source-note">
+          <i class="bi bi-info-circle"></i>
+          You'll be asked to sign in with Google first — it's quick.
+        </div>
+      <% } %>
     </div>
 
-    <div class="dropzone-file" id="dropzoneFile" hidden>
+    <div class="drive-source-picked" id="driveSourcePicked" hidden>
       <div class="file-icon"><i class="bi bi-file-earmark-play"></i></div>
       <div class="file-info">
-        <div class="file-name" id="fileName"></div>
-        <div class="file-size text-muted" id="fileSize"></div>
+        <div class="file-name" id="drivePickedName"></div>
+        <div class="file-size text-muted" id="drivePickedMeta"></div>
       </div>
-      <button type="button" class="btn-icon" id="clearFile" aria-label="Remove file">
+      <button type="button" class="btn-icon" id="clearDrivePick" aria-label="Remove file">
         <i class="bi bi-x-lg"></i>
       </button>
     </div>
@@ -70,6 +122,60 @@
   </div>
 </form>
 
+<!-- Drive file picker modal (videos + folders) -->
+<div class="modal fade folder-modal" id="driveFileModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="vertical-align:-3px;margin-right:6px;">
+              <path fill="#0066da" d="M6.6 66.85l3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3L27.5 53H0c0 1.55.4 3.1 1.2 4.5z"/>
+              <path fill="#00ac47" d="M43.65 25L29.9 1.2c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44A9.06 9.06 0 000 53h27.5z"/>
+              <path fill="#ea4335" d="M73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5H59.8l5.85 11.5z"/>
+              <path fill="#00832d" d="M43.65 25L57.4 1.2A8.84 8.84 0 0052.9 0H34.4c-1.55 0-3.1.45-4.5 1.2z"/>
+              <path fill="#2684fc" d="M59.8 53H27.5L13.75 76.8c1.4.8 2.95 1.2 4.5 1.2h50.8c1.55 0 3.1-.45 4.5-1.2z"/>
+              <path fill="#ffba00" d="M73.4 26.5l-12.7-22a9.06 9.06 0 00-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
+            </svg>
+            Pick a video from Drive
+          </h5>
+          <div class="modal-sub">Click a folder to open it, or click a video to select it.</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <nav class="folder-breadcrumbs" id="dfBreadcrumbs" aria-label="Breadcrumb"></nav>
+
+        <div class="folder-list-wrap">
+          <div class="folder-list" id="dfList"></div>
+          <div class="folder-empty" id="dfEmpty" hidden>
+            <i class="bi bi-folder2-open"></i>
+            <div>Nothing here yet.</div>
+            <small>No subfolders or videos in this folder.</small>
+          </div>
+          <div class="folder-loading" id="dfLoading">
+            <span class="spinner-inline"></span> Loading…
+          </div>
+          <div class="folder-error" id="dfError" hidden></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="folder-selected" id="dfSelected">
+          Selected: <strong id="dfSelectedName">none yet</strong>
+        </div>
+        <div class="folder-actions-right">
+          <button type="button" class="btn btn-outline-secondary btn-pill" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary btn-pill" id="dfPickBtn" disabled>
+            <i class="bi bi-check2 me-1"></i> Use this video
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <section class="features-grid">
   <div class="feature-card">
     <div class="feature-icon"><i class="bi bi-sliders2"></i></div>
@@ -88,5 +194,9 @@
   </div>
 </section>
 
-<script>window.__MAX_UPLOAD_MB__ = <%= maxUploadMb %>;</script>
+<script>
+  window.__MAX_UPLOAD_MB__ = <%= maxUploadMb %>;
+  window.__IS_LOGGED_IN__ = <%= currentUser ? 'true' : 'false' %>;
+</script>
+<script src="/js/drive.js"></script>
 <script src="/js/upload.js"></script>

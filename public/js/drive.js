@@ -368,7 +368,231 @@ FS.drive = (function () {
     });
   }
 
+  // ---------- Video file picker (for Import-from-Drive) ----------
+
+  var dfModalEl, dfModalInstance;
+  var dfListEl, dfEmptyEl, dfLoadingEl, dfErrorEl;
+  var dfBreadcrumbsEl, dfSelectedNameEl, dfPickBtn;
+  var dfPathStack = [];
+  var dfItems = [];
+  var dfLoading = false;
+  var dfSelectedFile = null;
+  var dfResolve = null;
+
+  function dfEnsureRefs() {
+    if (dfModalEl) return;
+    dfModalEl = $('driveFileModal');
+    if (!dfModalEl) return;
+    dfListEl = $('dfList');
+    dfEmptyEl = $('dfEmpty');
+    dfLoadingEl = $('dfLoading');
+    dfErrorEl = $('dfError');
+    dfBreadcrumbsEl = $('dfBreadcrumbs');
+    dfSelectedNameEl = $('dfSelectedName');
+    dfPickBtn = $('dfPickBtn');
+
+    if (window.bootstrap && bootstrap.Modal) {
+      dfModalInstance = bootstrap.Modal.getOrCreateInstance(dfModalEl, {
+        backdrop: 'static',
+      });
+    }
+
+    dfPickBtn.addEventListener('click', function () {
+      if (!dfSelectedFile || !dfResolve) return;
+      var r = dfResolve;
+      dfResolve = null;
+      var picked = dfSelectedFile;
+      dfModalInstance && dfModalInstance.hide();
+      r(picked);
+    });
+    dfModalEl.addEventListener('hidden.bs.modal', function () {
+      if (dfResolve) {
+        var r = dfResolve;
+        dfResolve = null;
+        r(null);
+      }
+    });
+  }
+
+  function dfCurrentFolder() {
+    return dfPathStack[dfPathStack.length - 1] || { id: 'root', name: 'My Drive' };
+  }
+
+  function dfRenderBreadcrumbs() {
+    dfBreadcrumbsEl.innerHTML = '';
+    dfPathStack.forEach(function (item, idx) {
+      var isLast = idx === dfPathStack.length - 1;
+      var node = document.createElement(isLast ? 'span' : 'button');
+      node.className = 'crumb' + (isLast ? ' is-current' : '');
+      if (!isLast) {
+        node.type = 'button';
+        node.addEventListener('click', function () {
+          if (dfLoading) return;
+          dfPathStack = dfPathStack.slice(0, idx + 1);
+          dfLoadCurrent();
+        });
+      }
+      if (idx === 0) {
+        node.innerHTML = '<i class="bi bi-hdd"></i> ' + escapeHtml(item.name);
+      } else {
+        node.textContent = item.name;
+      }
+      dfBreadcrumbsEl.appendChild(node);
+      if (!isLast) {
+        var sep = document.createElement('span');
+        sep.className = 'crumb-sep';
+        sep.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        dfBreadcrumbsEl.appendChild(sep);
+      }
+    });
+  }
+
+  function dfRenderList() {
+    dfListEl.innerHTML = '';
+    if (dfItems.length === 0) {
+      dfEmptyEl.hidden = false;
+      return;
+    }
+    dfEmptyEl.hidden = true;
+    var frag = document.createDocumentFragment();
+    dfItems.forEach(function (item) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'folder-item';
+      btn.dataset.id = item.id;
+      if (!item.isFolder && dfSelectedFile && dfSelectedFile.id === item.id) {
+        btn.classList.add('is-selected-file');
+      }
+      var iconHtml = item.isFolder
+        ? '<span class="folder-item-icon"><i class="bi bi-folder-fill"></i></span>'
+        : '<span class="folder-item-icon file-icon-video"><i class="bi bi-file-earmark-play-fill"></i></span>';
+      var meta = '';
+      if (!item.isFolder) {
+        var parts = [];
+        if (item.size) parts.push(formatBytes(item.size));
+        if (item.durationMillis) parts.push(formatDuration(item.durationMillis));
+        meta = '<span class="folder-item-meta">' + escapeHtml(parts.join(' · ')) + '</span>';
+      }
+      var trailing = item.isFolder
+        ? '<i class="bi bi-chevron-right folder-item-chevron"></i>'
+        : '<i class="bi bi-check-lg folder-item-check"></i>';
+      btn.innerHTML =
+        iconHtml +
+        '<span class="folder-item-name"></span>' +
+        meta +
+        trailing;
+      btn.querySelector('.folder-item-name').textContent = item.name;
+      btn.addEventListener('click', function () {
+        if (dfLoading) return;
+        if (item.isFolder) {
+          dfPathStack.push({ id: item.id, name: item.name });
+          dfLoadCurrent();
+        } else {
+          dfSelectedFile = item;
+          dfSelectedNameEl.textContent = item.name;
+          dfPickBtn.disabled = false;
+          // Update selection visuals
+          Array.prototype.forEach.call(dfListEl.querySelectorAll('.folder-item'), function (el) {
+            el.classList.remove('is-selected-file');
+          });
+          btn.classList.add('is-selected-file');
+        }
+      });
+      frag.appendChild(btn);
+    });
+    dfListEl.appendChild(frag);
+  }
+
+  function dfSetLoading(on) {
+    dfLoading = on;
+    dfLoadingEl.hidden = !on;
+  }
+
+  function dfShowError(msg) {
+    dfErrorEl.hidden = !msg;
+    dfErrorEl.textContent = msg || '';
+  }
+
+  function dfLoadCurrent() {
+    dfShowError('');
+    dfRenderBreadcrumbs();
+    dfListEl.innerHTML = '';
+    dfEmptyEl.hidden = true;
+    dfSetLoading(true);
+    var cur = dfCurrentFolder();
+    return fetch('/api/drive/contents?parent=' + encodeURIComponent(cur.id), { cache: 'no-store' })
+      .then(function (r) {
+        return r.json().then(function (d) {
+          if (!r.ok) throw new Error(d.error || 'Could not list Drive contents');
+          return d;
+        });
+      })
+      .then(function (d) {
+        dfItems = d.items || [];
+        dfRenderList();
+      })
+      .catch(function (err) {
+        dfShowError(err.message || 'Failed to load.');
+      })
+      .finally(function () {
+        dfSetLoading(false);
+      });
+  }
+
+  function pickVideoFromDrive() {
+    dfEnsureRefs();
+    if (!dfModalEl) return Promise.reject(new Error('Drive picker not available.'));
+    dfPathStack = [{ id: 'root', name: 'My Drive' }];
+    dfSelectedFile = null;
+    dfSelectedNameEl.textContent = 'none yet';
+    dfPickBtn.disabled = true;
+    dfShowError('');
+    dfRenderBreadcrumbs();
+    dfListEl.innerHTML = '';
+    dfEmptyEl.hidden = true;
+    dfSetLoading(true);
+
+    return new Promise(function (resolve) {
+      dfResolve = resolve;
+      dfModalInstance && dfModalInstance.show();
+      dfLoadCurrent();
+    });
+  }
+
+  // Trigger server-side download from Drive and create a job.
+  function importVideo(fileId) {
+    return fetch('/api/drive/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileId: fileId }),
+    }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(d.error || 'Drive import failed');
+        return d;
+      });
+    });
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes && bytes !== 0) return '';
+    var units = ['B', 'KB', 'MB', 'GB'];
+    var i = 0;
+    var n = bytes;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return n.toFixed(n >= 10 || i === 0 ? 0 : 1) + ' ' + units[i];
+  }
+
+  function formatDuration(ms) {
+    if (!ms) return '';
+    var s = Math.round(ms / 1000);
+    var m = Math.floor(s / 60);
+    var sec = s % 60;
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
   return {
     pickFolderAndSave: pickFolderAndSave,
+    pickVideoFromDrive: pickVideoFromDrive,
+    importVideo: importVideo,
   };
 })();

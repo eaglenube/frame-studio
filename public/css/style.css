@@ -203,6 +203,133 @@ body {
   max-width: 760px;
   border: 1px solid var(--slate-100);
 }
+
+/* Source tabs */
+.source-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--slate-50);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  margin-bottom: 22px;
+}
+.source-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-md) - 4px);
+  padding: 10px 14px;
+  font-weight: 600;
+  color: var(--slate-500);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 14px;
+  font-family: inherit;
+}
+.source-tab:hover {
+  color: var(--slate-900);
+}
+.source-tab.is-active {
+  background: white;
+  color: var(--slate-900);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+.source-tab i,
+.source-tab svg {
+  flex-shrink: 0;
+}
+
+/* Drive source panel */
+.drive-source {
+  border: 2px dashed var(--slate-200);
+  border-radius: var(--radius-lg);
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--slate-50);
+}
+.drive-source-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #4285f4, #0066da);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 24px rgba(66, 133, 244, 0.35);
+}
+.drive-source-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--slate-900);
+  margin: 0 0 6px;
+}
+.drive-source-sub {
+  color: var(--slate-500);
+  margin: 0 auto 18px;
+  max-width: 380px;
+}
+.drive-source-note {
+  margin-top: 14px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--slate-500);
+}
+.drive-source-picked {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  background: white;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.drive-source-picked .file-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4285f4, #0066da);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+/* Video file item in the Drive picker */
+.folder-item-meta {
+  font-size: 12px;
+  color: var(--slate-500);
+  margin-left: 4px;
+}
+.folder-item .file-icon-video {
+  background: linear-gradient(135deg, #4285f4, #6366f1);
+}
+.folder-item-check {
+  color: var(--slate-300);
+  font-size: 16px;
+  transition: var(--transition);
+}
+.folder-item.is-selected-file {
+  background: var(--primary-50);
+}
+.folder-item.is-selected-file .folder-item-check {
+  color: var(--primary);
+}
+.folder-item.is-selected-file .folder-item-name {
+  color: var(--primary-600);
+  font-weight: 600;
+}
 .dropzone {
   position: relative;
   border: 2px dashed var(--slate-200);

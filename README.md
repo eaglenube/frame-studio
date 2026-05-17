@@ -82,7 +82,7 @@ In the new project, open **APIs & Services → Library** and enable:
   - `.../auth/userinfo.email`
   - `.../auth/userinfo.profile`
   - `https://www.googleapis.com/auth/drive.file`
-  - `https://www.googleapis.com/auth/drive.metadata.readonly`
+  - `https://www.googleapis.com/auth/drive.readonly`
 - **Test users**: add your own Google account email (required while the app is
   in *Testing* mode)
 
@@ -117,11 +117,16 @@ destination, then the images upload there.
 
 ## How to use
 
-No account needed for the core flow — just open the site and start uploading.
-Sign-in is only required if you want to **save to Drive**.
+No account needed for local uploads — just open the site and start dropping
+videos. Sign-in is only required for **importing from** or **saving to** Drive.
 
-1. **Upload** — drag a video onto the home page or click to browse. Supported
-   formats: MP4, MOV, AVI, MKV, WEBM. Max size is set in `.env` (default 500 MB).
+1. **Upload** — on the home page choose a source:
+   - **From your computer** — drag a video onto the dropzone or click to browse.
+     Supported: MP4, MOV, AVI, MKV, WEBM. Max size is set in `.env`
+     (default 500 MB).
+   - **From Google Drive** — click *Browse Drive*, sign in if you haven't,
+     navigate to a video, click *Use this video*, then *Continue*. The video
+     streams to the server and the rest of the flow is the same.
 3. **Options** — choose frames-per-second (0.1–30), image quality (1–10),
    output format (JPG/PNG), and an optional resize width.
 4. **Progress** — watch the bar fill as FFmpeg extracts. The page polls the
@@ -208,10 +213,10 @@ video-to-image-app/
   added in the consent screen step can sign in.
 - Make sure the **Google Drive API** is enabled.
 
-### Folder explorer says "Insufficient Permission" or lists nothing
-- After adding the new `drive.metadata.readonly` scope, **sign out and sign in
-  again** so Google grants the broader access. The new consent screen will
-  mention "See information about your Google Drive files".
+### Folder explorer / video picker says "Insufficient Permission"
+- After updating the consent screen with the `drive.readonly` scope, **sign
+  out and sign in again** so Google grants the broader access. The consent
+  screen will mention "See and download all your Google Drive files".
 
 ### Drive upload fails with "Login Required" or 401
 - The stored access token may have expired and your account has no refresh

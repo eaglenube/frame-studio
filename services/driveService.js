@@ -126,6 +126,81 @@ async function getFolderMeta(user, folderId) {
   };
 }
 
+// List children of a folder, returning both subfolders and video files. Used
+// by the Import-from-Drive picker.
+async function listFolderContents(user, parentId) {
+  const auth = await getClientForUser(user);
+  const drive = google.drive({ version: 'v3', auth });
+  const parent = (parentId || 'root').replace(/'/g, "\\'");
+
+  const q = [
+    `'${parent}' in parents`,
+    `(mimeType='application/vnd.google-apps.folder' or mimeType contains 'video/')`,
+    'trashed=false',
+  ].join(' and ');
+
+  const res = await drive.files.list({
+    q,
+    pageSize: 500,
+    orderBy: 'folder,name',
+    fields: 'files(id,name,mimeType,size,videoMediaMetadata,thumbnailLink,modifiedTime)',
+  });
+
+  const items = (res.data.files || []).map((f) => ({
+    id: f.id,
+    name: f.name,
+    mimeType: f.mimeType,
+    isFolder: f.mimeType === 'application/vnd.google-apps.folder',
+    size: f.size ? parseInt(f.size, 10) : null,
+    durationMillis:
+      f.videoMediaMetadata && f.videoMediaMetadata.durationMillis
+        ? parseInt(f.videoMediaMetadata.durationMillis, 10)
+        : null,
+    thumbnailLink: f.thumbnailLink || null,
+    modifiedTime: f.modifiedTime || null,
+  }));
+
+  return items;
+}
+
+// Stream a file's media content from Drive to a local path. Returns the size
+// of the downloaded file.
+async function downloadFileToPath(user, fileId, destPath) {
+  const auth = await getClientForUser(user);
+  const drive = google.drive({ version: 'v3', auth });
+  const meta = await drive.files.get({
+    fileId,
+    fields: 'id,name,mimeType,size',
+  });
+
+  const streamRes = await drive.files.get(
+    { fileId, alt: 'media' },
+    { responseType: 'stream' }
+  );
+
+  const writeStream = fs.createWriteStream(destPath);
+  return new Promise((resolve, reject) => {
+    let downloaded = 0;
+    streamRes.data
+      .on('data', (chunk) => {
+        downloaded += chunk.length;
+      })
+      .on('error', (err) => {
+        writeStream.destroy();
+        reject(err);
+      })
+      .pipe(writeStream)
+      .on('error', reject)
+      .on('finish', () => {
+        resolve({
+          name: meta.data.name,
+          mimeType: meta.data.mimeType,
+          size: downloaded,
+        });
+      });
+  });
+}
+
 async function createFolder(user, name, parentId) {
   const auth = await getClientForUser(user);
   const drive = google.drive({ version: 'v3', auth });
@@ -148,4 +223,6 @@ module.exports = {
   listFolders,
   getFolderMeta,
   createFolder,
+  listFolderContents,
+  downloadFileToPath,
 };
