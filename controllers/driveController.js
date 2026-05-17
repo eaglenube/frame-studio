@@ -2,25 +2,41 @@
 
 const { Op } = require('sequelize');
 const { Image } = require('../models');
-const { uploadImagesToFolder, getFreshAccessToken } = require('../services/driveService');
+const {
+  uploadImagesToFolder,
+  listFolders,
+  createFolder,
+} = require('../services/driveService');
 
-async function pickerConfig(req, res, next) {
+async function listFoldersHandler(req, res, next) {
   try {
-    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_API_KEY) {
-      return res.status(503).json({
-        error:
-          'Google Drive integration is not fully configured. The server is missing GOOGLE_CLIENT_ID and/or GOOGLE_API_KEY.',
-      });
-    }
-    const accessToken = await getFreshAccessToken(req.user);
-    res.json({
-      accessToken,
-      apiKey: process.env.GOOGLE_API_KEY,
-      appId: process.env.GOOGLE_APP_ID || '',
-      clientId: process.env.GOOGLE_CLIENT_ID,
-    });
+    const parent = (req.query.parent || 'root').toString();
+    const folders = await listFolders(req.user, parent);
+    res.json({ parent, folders });
   } catch (err) {
-    next(err);
+    const msg =
+      (err && err.errors && err.errors[0] && err.errors[0].message) ||
+      (err && err.message) ||
+      'Could not list folders';
+    res.status(500).json({ error: msg });
+  }
+}
+
+async function createFolderHandler(req, res, next) {
+  try {
+    const name = (req.body.name || '').toString().trim();
+    const parentId = (req.body.parentId || 'root').toString();
+    if (!name) return res.status(400).json({ error: 'Folder name is required.' });
+    if (name.length > 200) return res.status(400).json({ error: 'Folder name is too long.' });
+
+    const folder = await createFolder(req.user, name, parentId);
+    res.status(201).json(folder);
+  } catch (err) {
+    const msg =
+      (err && err.errors && err.errors[0] && err.errors[0].message) ||
+      (err && err.message) ||
+      'Could not create folder';
+    res.status(500).json({ error: msg });
   }
 }
 
@@ -61,4 +77,8 @@ async function saveToDrive(req, res, next) {
   }
 }
 
-module.exports = { pickerConfig, saveToDrive };
+module.exports = {
+  listFoldersHandler,
+  createFolderHandler,
+  saveToDrive,
+};

@@ -302,53 +302,43 @@
 
   function saveImagesToDrive(imageIds, label, triggerBtn) {
     if (!imageIds || imageIds.length === 0) return;
+
+    // Defer to sign-in if the user isn't logged in yet — bring them back here.
+    if (!window.__IS_LOGGED_IN__) {
+      var next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location = '/login?next=' + next;
+      return;
+    }
+
     if (!window.FS || !FS.drive) {
       FS.toast('Drive integration is not available.', 'danger');
       return;
     }
 
     var originalHtml = triggerBtn ? triggerBtn.innerHTML : null;
-    var setBusy = function (busy, text) {
-      if (!triggerBtn) return;
-      if (busy) {
-        triggerBtn.disabled = true;
-        triggerBtn.innerHTML = '<span class="spinner-inline"></span> ' + text;
-      } else {
-        triggerBtn.disabled = imageIds.length === 0;
-        if (originalHtml !== null) triggerBtn.innerHTML = originalHtml;
-      }
-    };
-
-    setBusy(true, 'Opening Drive…');
+    if (triggerBtn) {
+      triggerBtn.disabled = true;
+      triggerBtn.innerHTML = '<span class="spinner-inline"></span> Opening Drive…';
+    }
 
     FS.drive
-      .pickFolder()
-      .then(function (folder) {
-        if (!folder) {
-          setBusy(false);
-          return null;
-        }
-        setBusy(true, 'Uploading to "' + folder.name + '"…');
-        return FS.drive.save(jobId, imageIds, folder.id).then(function (res) {
-          if (res.ok) {
-            FS.toast(
-              'Saved ' + res.uploaded + ' ' + label + ' to "' + folder.name + '".',
-              'success'
-            );
-          } else {
-            FS.toast(
-              'Saved ' + res.uploaded + ' of ' + res.total +
-                ' — ' + res.failed + ' failed.',
-              'danger'
-            );
-          }
-        });
+      .pickFolderAndSave(jobId, imageIds)
+      .then(function (outcome) {
+        if (!outcome) return; // cancelled
+        var r = outcome.result;
+        FS.toast(
+          'Saved ' + r.uploaded + ' ' + label + ' to "' + outcome.folder.name + '".',
+          'success'
+        );
       })
       .catch(function (err) {
         FS.toast(err.message || 'Drive save failed.', 'danger');
       })
       .finally(function () {
-        setBusy(false);
+        if (triggerBtn && originalHtml !== null) {
+          triggerBtn.disabled = imageIds.length === 0;
+          triggerBtn.innerHTML = originalHtml;
+        }
       });
   }
 
@@ -367,7 +357,9 @@
     lightboxDriveBtn.addEventListener('click', function () {
       var img = allImages[lbIndex];
       if (!img) return;
-      saveImagesToDrive([img.id], 'image', lightboxDriveBtn);
+      // Close the lightbox first so Google's Picker isn't covered by our overlay.
+      closeLightbox();
+      saveImagesToDrive([img.id], 'image', null);
     });
   }
 

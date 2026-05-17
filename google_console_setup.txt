@@ -28,12 +28,11 @@ Follow the steps below in order.
   In the left sidebar:
     APIs & Services  ->  Library
 
-  Search for and enable BOTH of these:
+  Search for and enable:
 
     [x] Google Drive API
-    [x] Google Picker API
 
-  (Click each one, then click ENABLE.)
+  (Click ENABLE. No other APIs are required.)
 
 
 ----------------------------------------------------------------
@@ -59,6 +58,7 @@ Follow the steps below in order.
     .../auth/userinfo.email
     .../auth/userinfo.profile
     https://www.googleapis.com/auth/drive.file
+    https://www.googleapis.com/auth/drive.metadata.readonly
 
   Click UPDATE, then SAVE AND CONTINUE.
 
@@ -93,41 +93,7 @@ Follow the steps below in order.
 
 
 ----------------------------------------------------------------
-  STEP 5 -- Create an API key (for the Google Picker)
-----------------------------------------------------------------
-
-  APIs & Services  ->  Credentials
-  Click  + CREATE CREDENTIALS  ->  API key
-
-  Copy the key that appears.  Then click EDIT API KEY:
-
-  API restrictions:
-    -  Choose "Restrict key"
-    -  In the dropdown, select ONLY:  Google Picker API
-
-  Application restrictions  (recommended):
-    -  Choose "HTTP referrers (websites)"
-    -  Add referrer:  http://localhost:3000/*
-
-  Click SAVE.
-
-  This key  ->  goes into GOOGLE_API_KEY
-
-
-----------------------------------------------------------------
-  STEP 6 -- (Optional) Note your project number
-----------------------------------------------------------------
-
-  Cloud Console  ->  Home  ->  Project info card  ->  Project number
-
-  This number is used as the Picker's "appId". It is optional but
-  recommended for Shared Drive support.
-
-  This number  ->  goes into GOOGLE_APP_ID
-
-
-----------------------------------------------------------------
-  STEP 7 -- Paste the values into .env
+  STEP 5 -- Paste the values into .env
 ----------------------------------------------------------------
 
   Open the .env file at the project root and fill in:
@@ -135,12 +101,14 @@ Follow the steps below in order.
       APP_URL=http://localhost:3000
       GOOGLE_CLIENT_ID=<step 4 client id>
       GOOGLE_CLIENT_SECRET=<step 4 client secret>
-      GOOGLE_API_KEY=<step 5 api key>
-      GOOGLE_APP_ID=<step 6 project number (or leave blank)>
+
+  (GOOGLE_API_KEY and GOOGLE_APP_ID are no longer needed --
+  Frame Studio uses its own in-app folder explorer instead of
+  Google Picker.)
 
 
 ----------------------------------------------------------------
-  STEP 8 -- Restart and test
+  STEP 6 -- Restart and test
 ----------------------------------------------------------------
 
   Stop the dev server if it's running, then:
@@ -151,8 +119,9 @@ Follow the steps below in order.
   with a "Continue with Google" button (no more warning banner).
 
   Sign in.  Upload a video.  Extract frames.  Select a few.
-  Click "Save to Drive" -- the Google Picker opens, pick a folder,
-  and the images land in your Drive.  Done!
+  Click "Save to Drive" -- our in-app folder explorer opens. Browse
+  to a folder (or click "Create folder" to make a new one), then
+  "Save here".  The images land in your Drive.  Done!
 
 
 ================================================================
@@ -168,12 +137,10 @@ Follow the steps below in order.
        http://localhost:3000/auth/google/callback
      (no trailing slash, no https, no different port)
 
-Picker opens but says "API key not valid"
-  -  Check that GOOGLE_API_KEY is the key from step 5, not the
-     client ID from step 4 (they look similar).
-  -  Make sure the API restriction allows "Google Picker API".
-  -  Make sure the HTTP referrer restriction includes
-       http://localhost:3000/*
+Folder explorer is empty or says "Insufficient Permission"
+  -  You signed in with the old scope set. Sign out of Frame
+     Studio and sign in again to grant the new
+     drive.metadata.readonly scope.
 
 "Login Required" or 401 when saving to Drive
   -  Sign out of Frame Studio and sign in again. This mints a

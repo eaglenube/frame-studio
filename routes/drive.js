@@ -1,12 +1,17 @@
 'use strict';
 
 const express = require('express');
-const { pickerConfig, saveToDrive } = require('../controllers/driveController');
-const { requireOwnJob } = require('../middleware/auth');
+const {
+  listFoldersHandler,
+  createFolderHandler,
+  saveToDrive,
+} = require('../controllers/driveController');
+const { requireUser, requireOwnJob } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/api/drive/picker-config', pickerConfig);
-router.post('/api/jobs/:jobId/drive/save', requireOwnJob, saveToDrive);
+router.get('/api/drive/folders', requireUser, listFoldersHandler);
+router.post('/api/drive/folders', requireUser, createFolderHandler);
+router.post('/api/jobs/:jobId/drive/save', requireUser, requireOwnJob, saveToDrive);
 
 module.exports = router;

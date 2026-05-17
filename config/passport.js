@@ -10,6 +10,9 @@ const DRIVE_SCOPES = [
   'email',
   'profile',
   'https://www.googleapis.com/auth/drive.file',
+  // Read-only metadata access lets us list the user's existing folders for the
+  // custom folder explorer. We never read file contents, only names/IDs.
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
 ];
 
 function configurePassport() {

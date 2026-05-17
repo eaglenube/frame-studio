@@ -12,7 +12,9 @@ function requireUser(req, res, next) {
   return res.redirect('/login');
 }
 
-// For routes that have :jobId in path — ensure the job belongs to the user.
+// For routes that have :jobId in path. Anonymous jobs (userId = null) are
+// accessible to anyone with the URL — UUIDs are unguessable. Owned jobs are
+// restricted to the owner once claimed.
 async function requireOwnJob(req, res, next) {
   try {
     const job = await Job.findByPk(req.params.jobId);
@@ -26,15 +28,17 @@ async function requireOwnJob(req, res, next) {
         message: 'Job not found.',
       });
     }
-    if (job.userId && req.user && job.userId !== req.user.id) {
-      if (req.path.startsWith('/api/')) {
-        return res.status(403).json({ error: 'Not your job.' });
+    if (job.userId) {
+      if (!req.user || job.userId !== req.user.id) {
+        if (req.path.startsWith('/api/')) {
+          return res.status(403).json({ error: 'Not your job.' });
+        }
+        return res.status(403).render('error', {
+          title: 'Forbidden',
+          statusCode: 403,
+          message: 'This job belongs to another account.',
+        });
       }
-      return res.status(403).render('error', {
-        title: 'Forbidden',
-        statusCode: 403,
-        message: 'This job belongs to another account.',
-      });
     }
     req.job = job;
     next();

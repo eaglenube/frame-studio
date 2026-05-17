@@ -2,13 +2,44 @@
   <div class="login-mark">
     <i class="bi bi-film"></i>
   </div>
-  <h1 class="login-title">Welcome to Frame Studio</h1>
+  <h1 class="login-title">
+    <% if (next) { %>
+      Sign in to save to Drive
+    <% } else { %>
+      Welcome to Frame Studio
+    <% } %>
+  </h1>
   <p class="login-sub">
-    Sign in to upload videos, extract frames, and save them to your Google Drive.
+    <% if (next) { %>
+      We just need a quick Google sign-in so we can drop your frames into the
+      folder you pick. You'll come right back here after.
+    <% } else { %>
+      Sign in to save extracted frames to your Google Drive. You don't need an
+      account to upload videos and download frames — only to save them to Drive.
+    <% } %>
   </p>
 
+  <% if (error === 'auth_failed') { %>
+    <div class="login-warning login-warning--soft">
+      <i class="bi bi-exclamation-circle"></i>
+      <div>Sign-in didn't complete. Please try again.</div>
+    </div>
+  <% } %>
+  <% if (error === 'not_configured') { %>
+    <div class="login-warning">
+      <i class="bi bi-exclamation-triangle"></i>
+      <div>
+        <strong>Google sign-in isn't configured yet.</strong>
+        <div class="text-muted small">
+          Set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code>
+          in <code>.env</code> and restart. See <code>google_console_setup.txt</code>.
+        </div>
+      </div>
+    </div>
+  <% } %>
+
   <% if (googleConfigured) { %>
-    <a href="/auth/google" class="btn-google">
+    <a href="/auth/google<%= next ? '?next=' + encodeURIComponent(next) : '' %>" class="btn-google">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true">
         <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
         <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/>
@@ -20,16 +51,29 @@
     <p class="login-fineprint">
       We'll ask for access to files Frame Studio creates in your Drive — nothing else.
     </p>
+    <% if (next) { %>
+      <a href="<%= next %>" class="login-skip">
+        <i class="bi bi-arrow-left me-1"></i> Cancel and go back
+      </a>
+    <% } else { %>
+      <a href="/" class="login-skip">
+        Skip — just extract frames <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    <% } %>
   <% } else { %>
     <div class="login-warning">
       <i class="bi bi-exclamation-triangle"></i>
       <div>
         <strong>Google sign-in isn't configured yet.</strong>
         <div class="text-muted small">
-          Set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> in
-          <code>.env</code>, then restart the server. See the README for step-by-step setup.
+          Set <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code>
+          in <code>.env</code>, then restart the server. See
+          <code>google_console_setup.txt</code> for step-by-step instructions.
         </div>
       </div>
     </div>
+    <a href="/" class="login-skip">
+      Skip — just extract frames <i class="bi bi-arrow-right ms-1"></i>
+    </a>
   <% } %>
 </section>

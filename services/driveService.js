@@ -90,9 +90,62 @@ async function getFreshAccessToken(user) {
   return tokenInfo.access_token || user.accessToken;
 }
 
+// List child folders of a given parent. parentId='root' lists My Drive root.
+async function listFolders(user, parentId) {
+  const auth = await getClientForUser(user);
+  const drive = google.drive({ version: 'v3', auth });
+  const parent = parentId || 'root';
+  const q = [
+    `'${parent.replace(/'/g, "\\'")}' in parents`,
+    "mimeType='application/vnd.google-apps.folder'",
+    'trashed=false',
+  ].join(' and ');
+
+  const res = await drive.files.list({
+    q,
+    pageSize: 200,
+    orderBy: 'folder,name',
+    fields: 'files(id,name)',
+  });
+
+  return (res.data.files || []).map((f) => ({ id: f.id, name: f.name }));
+}
+
+// Fetch a single folder's metadata (name + parent) — used to walk up for breadcrumbs.
+async function getFolderMeta(user, folderId) {
+  const auth = await getClientForUser(user);
+  const drive = google.drive({ version: 'v3', auth });
+  const res = await drive.files.get({
+    fileId: folderId,
+    fields: 'id,name,parents,mimeType',
+  });
+  return {
+    id: res.data.id,
+    name: res.data.name,
+    parents: res.data.parents || [],
+  };
+}
+
+async function createFolder(user, name, parentId) {
+  const auth = await getClientForUser(user);
+  const drive = google.drive({ version: 'v3', auth });
+  const res = await drive.files.create({
+    requestBody: {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+      parents: parentId && parentId !== 'root' ? [parentId] : undefined,
+    },
+    fields: 'id,name,webViewLink',
+  });
+  return { id: res.data.id, name: res.data.name, webViewLink: res.data.webViewLink };
+}
+
 module.exports = {
   buildOAuth2Client,
   getClientForUser,
   uploadImagesToFolder,
   getFreshAccessToken,
+  listFolders,
+  getFolderMeta,
+  createFolder,
 };

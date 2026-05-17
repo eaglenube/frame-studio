@@ -68,7 +68,6 @@ must register the app once in Google Cloud Console to get the credentials.
 In the new project, open **APIs & Services → Library** and enable:
 
 - **Google Drive API**
-- **Google Picker API**
 
 ### 3. Configure the OAuth consent screen
 
@@ -83,6 +82,7 @@ In the new project, open **APIs & Services → Library** and enable:
   - `.../auth/userinfo.email`
   - `.../auth/userinfo.profile`
   - `https://www.googleapis.com/auth/drive.file`
+  - `https://www.googleapis.com/auth/drive.metadata.readonly`
 - **Test users**: add your own Google account email (required while the app is
   in *Testing* mode)
 
@@ -97,42 +97,30 @@ In the new project, open **APIs & Services → Library** and enable:
 
 Copy the **Client ID** and **Client secret** that appear.
 
-### 5. Create an API key (for the Picker)
-
-**APIs & Services → Credentials → + Create credentials → API key**:
-
-- Click **Edit API key**
-- Under **API restrictions**, restrict the key to: **Google Picker API**
-- Under **Application restrictions** (recommended), restrict to *HTTP referrers*
-  and add `http://localhost:3000/*`
-
-Copy the key.
-
-### 6. (Optional) Note your project number
-
-**Cloud Console → Home → Project info** → copy the **Project number**. This is
-the `appId` used by the Picker.
-
-### 7. Drop the values into `.env`
+### 5. Drop the values into `.env`
 
 ```env
 APP_URL=http://localhost:3000
 GOOGLE_CLIENT_ID=<paste step 4 client id>
 GOOGLE_CLIENT_SECRET=<paste step 4 client secret>
-GOOGLE_API_KEY=<paste step 5 api key>
-GOOGLE_APP_ID=<paste step 6 project number, or leave blank>
 ```
+
+`GOOGLE_API_KEY` and `GOOGLE_APP_ID` are no longer required — Frame Studio
+ships its own in-app folder explorer.
 
 Then restart the server. Visit <http://localhost:3000>, sign in with Google,
 extract some frames, select a few, and click **Save to Drive** in the gallery —
-the Google Picker opens, you pick a folder, and the images land there.
+a folder explorer opens where you can navigate, create new folders, and pick a
+destination, then the images upload there.
 
 ---
 
 ## How to use
 
-1. **Sign in with Google** — first visit redirects you to the login page.
-2. **Upload** — drag a video onto the home page or click to browse. Supported
+No account needed for the core flow — just open the site and start uploading.
+Sign-in is only required if you want to **save to Drive**.
+
+1. **Upload** — drag a video onto the home page or click to browse. Supported
    formats: MP4, MOV, AVI, MKV, WEBM. Max size is set in `.env` (default 500 MB).
 3. **Options** — choose frames-per-second (0.1–30), image quality (1–10),
    output format (JPG/PNG), and an optional resize width.
@@ -143,10 +131,11 @@ the Google Picker opens, you pick a folder, and the images land there.
    - Click the fullscreen icon on any thumbnail to open the **lightbox preview**
      (use ←/→ to navigate, `Esc` to close, `Space` to select).
    - **Download selected (ZIP)** — zips the selection and saves locally.
-   - **Save to Drive** — opens the Google Picker, lets you pick a folder, and
-     uploads each selected frame into that folder.
+   - **Save to Drive** — first click takes you through "Sign in with Google"
+     (one time), then opens the Google Picker so you can choose a folder.
+     Subsequent clicks skip straight to the picker.
    - In the lightbox, **Download** saves the single frame; **Save to Drive**
-     saves just that one image.
+     saves just that one image (also triggers sign-in if needed).
 
 ---
 
@@ -219,11 +208,10 @@ video-to-image-app/
   added in the consent screen step can sign in.
 - Make sure the **Google Drive API** is enabled.
 
-### "Save to Drive" button does nothing / picker errors
-- Make sure both `GOOGLE_API_KEY` is set in `.env` and the key is restricted to
-  the **Google Picker API**.
-- Check the browser console — most failures here are HTTP referrer restrictions
-  on the API key (allow `http://localhost:3000/*`).
+### Folder explorer says "Insufficient Permission" or lists nothing
+- After adding the new `drive.metadata.readonly` scope, **sign out and sign in
+  again** so Google grants the broader access. The new consent screen will
+  mention "See information about your Google Drive files".
 
 ### Drive upload fails with "Login Required" or 401
 - The stored access token may have expired and your account has no refresh
