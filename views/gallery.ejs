@@ -1,0 +1,77 @@
+<section class="page-header gallery-header">
+  <div>
+    <a href="/" class="back-link"><i class="bi bi-chevron-left"></i> New extraction</a>
+    <h1 class="page-title">Extracted frames</h1>
+    <p class="page-sub">
+      <strong><%= job.totalImages %></strong> frame<%= job.totalImages === 1 ? '' : 's' %>
+      from <strong><%= job.originalFilename %></strong>
+    </p>
+  </div>
+</section>
+
+<div class="gallery-toolbar sticky-top" data-job-id="<%= job.id %>" data-total="<%= job.totalImages %>">
+  <div class="toolbar-left">
+    <button type="button" class="btn btn-outline-secondary btn-sm btn-pill" id="toggleAllBtn">
+      <i class="bi bi-check2-square me-1"></i> Select all on page
+    </button>
+    <span class="selection-counter">
+      Selected <strong id="selectedCount">0</strong> / <span id="totalCount"><%= job.totalImages %></span>
+    </span>
+  </div>
+  <div class="toolbar-right">
+    <button type="button" class="btn btn-primary btn-pill" id="downloadBtn" disabled>
+      <i class="bi bi-download me-1"></i>
+      <span>Download selected (ZIP)</span>
+    </button>
+  </div>
+</div>
+
+<div id="gallery" class="gallery-grid"></div>
+
+<div class="gallery-loadmore">
+  <button type="button" class="btn btn-outline-primary btn-pill" id="loadMoreBtn">
+    <span class="btn-label">Load more</span>
+    <i class="bi bi-arrow-down-circle ms-1"></i>
+  </button>
+  <div id="galleryStatus" class="text-muted small mt-2"></div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden aria-hidden="true" role="dialog" aria-label="Frame preview">
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close preview">
+    <i class="bi bi-x-lg"></i>
+  </button>
+
+  <button type="button" class="lightbox-nav lightbox-prev" id="lightboxPrev" aria-label="Previous frame">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+
+  <div class="lightbox-stage" id="lightboxStage">
+    <img id="lightboxImg" alt="" />
+    <div class="lightbox-loading" id="lightboxLoading"><span class="spinner-inline"></span> Loading…</div>
+  </div>
+
+  <button type="button" class="lightbox-nav lightbox-next" id="lightboxNext" aria-label="Next frame">
+    <i class="bi bi-chevron-right"></i>
+  </button>
+
+  <div class="lightbox-bar">
+    <div class="lightbox-info">
+      <div class="lightbox-frame-no">Frame <span id="lbFrame">—</span></div>
+      <div class="lightbox-meta">
+        <span id="lbTimestamp">—</span>
+        <span class="dot-sep">·</span>
+        <span id="lbPosition">—</span>
+      </div>
+    </div>
+    <div class="lightbox-actions">
+      <button type="button" class="btn btn-outline-light btn-pill btn-sm" id="lightboxToggleSelect">
+        <i class="bi bi-check2-square me-1"></i> <span id="lbSelectLabel">Select</span>
+      </button>
+      <a class="btn btn-primary btn-pill btn-sm" id="lightboxDownload" href="#" download>
+        <i class="bi bi-download me-1"></i> Download
+      </a>
+    </div>
+  </div>
+</div>
+
+<script src="/js/gallery.js"></script>

@@ -1,0 +1,54 @@
+<section class="page-header">
+  <h1 class="page-title">Extracting frames…</h1>
+  <p class="page-sub">
+    From <strong><%= job.originalFilename %></strong>
+  </p>
+</section>
+
+<div class="progress-card" data-job-id="<%= job.id %>">
+  <div class="progress-visual">
+    <div class="pulse-ring">
+      <i class="bi bi-film"></i>
+    </div>
+  </div>
+
+  <div class="progress-stage" id="stageLabel">Preparing…</div>
+
+  <div class="progress big-progress" style="height: 18px;">
+    <div
+      id="bigProgressBar"
+      class="progress-bar progress-bar-striped progress-bar-animated"
+      role="progressbar"
+      style="width: 0%"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    ></div>
+  </div>
+
+  <div class="progress-meta">
+    <div>
+      <div class="meta-label">Progress</div>
+      <div class="meta-value"><span id="progressPct">0</span>%</div>
+    </div>
+    <div>
+      <div class="meta-label">Frames so far</div>
+      <div class="meta-value"><span id="frameCount">0</span></div>
+    </div>
+    <div>
+      <div class="meta-label">Status</div>
+      <div class="meta-value text-capitalize" id="statusLabel">pending</div>
+    </div>
+  </div>
+
+  <div class="progress-error d-none" id="errorBox">
+    <i class="bi bi-exclamation-octagon"></i>
+    <div>
+      <strong>Extraction failed.</strong>
+      <div id="errorMessage" class="text-muted small"></div>
+    </div>
+    <a href="/" class="btn btn-outline-primary btn-sm btn-pill ms-auto">Try again</a>
+  </div>
+</div>
+
+<script src="/js/progress.js"></script>

@@ -1,0 +1,92 @@
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    <span>Frame extraction studio</span>
+  </div>
+  <h1 class="hero-title">
+    Turn any video into <span class="gradient-text">crisp still frames</span>.
+  </h1>
+  <p class="hero-sub">
+    Drop a clip, choose a frame rate, and download exactly the moments you need.
+    No installs, no command line, no friction.
+  </p>
+</section>
+
+<form id="uploadForm" class="upload-card" novalidate>
+  <div id="dropzone" class="dropzone" tabindex="0">
+    <input
+      type="file"
+      id="videoInput"
+      name="video"
+      accept=".mp4,.mov,.avi,.mkv,.webm,video/*"
+      hidden
+    />
+    <div class="dropzone-inner" id="dropzoneIdle">
+      <div class="dropzone-icon">
+        <i class="bi bi-cloud-arrow-up-fill"></i>
+      </div>
+      <h3 class="dropzone-title">Drop a video here</h3>
+      <p class="dropzone-sub">
+        or <button type="button" id="pickFileBtn" class="link-btn">click to browse</button>
+      </p>
+      <ul class="dropzone-meta">
+        <li><i class="bi bi-check2"></i> MP4 · MOV · AVI · MKV · WEBM</li>
+        <li><i class="bi bi-check2"></i> Up to <%= maxUploadMb %> MB</li>
+      </ul>
+    </div>
+
+    <div class="dropzone-file" id="dropzoneFile" hidden>
+      <div class="file-icon"><i class="bi bi-file-earmark-play"></i></div>
+      <div class="file-info">
+        <div class="file-name" id="fileName"></div>
+        <div class="file-size text-muted" id="fileSize"></div>
+      </div>
+      <button type="button" class="btn-icon" id="clearFile" aria-label="Remove file">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="upload-progress" id="uploadProgressWrap" hidden>
+    <div class="progress" style="height: 10px;">
+      <div
+        id="uploadProgressBar"
+        class="progress-bar"
+        role="progressbar"
+        style="width: 0%"
+      ></div>
+    </div>
+    <div class="d-flex justify-content-between mt-2">
+      <small class="text-muted" id="uploadProgressLabel">Uploading…</small>
+      <small class="text-muted" id="uploadProgressPct">0%</small>
+    </div>
+  </div>
+
+  <div class="upload-actions">
+    <button type="submit" class="btn btn-primary btn-lg btn-pill" id="continueBtn" disabled>
+      <span class="btn-label">Continue</span>
+      <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+  </div>
+</form>
+
+<section class="features-grid">
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-sliders2"></i></div>
+    <h4>Tunable output</h4>
+    <p>Pick FPS, quality, and format. Resize on the way out if you need it.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-bar-chart-line"></i></div>
+    <h4>Live progress</h4>
+    <p>Watch frames arrive in real time with a smooth, accurate progress bar.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-archive"></i></div>
+    <h4>Cherry-pick &amp; ZIP</h4>
+    <p>Select the frames you love and download them as a single zip file.</p>
+  </div>
+</section>
+
+<script>window.__MAX_UPLOAD_MB__ = <%= maxUploadMb %>;</script>
+<script src="/js/upload.js"></script>

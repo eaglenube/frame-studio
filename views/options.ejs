@@ -1,0 +1,98 @@
+<section class="page-header">
+  <a href="/" class="back-link"><i class="bi bi-chevron-left"></i> Start over</a>
+  <h1 class="page-title">Extraction options</h1>
+  <p class="page-sub">
+    Fine-tune the output for <strong><%= job.originalFilename %></strong>.
+  </p>
+</section>
+
+<form id="optionsForm" class="options-card" data-job-id="<%= job.id %>">
+  <div class="row g-4">
+    <div class="col-md-6">
+      <label class="form-label" for="fps">Frames per second</label>
+      <input
+        type="number"
+        class="form-control form-control-lg"
+        id="fps"
+        name="fps"
+        min="0.1"
+        max="30"
+        step="0.1"
+        value="1"
+        required
+      />
+      <div class="form-help">Higher value = more images. Most clips look great at 1–5 fps.</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Output format</label>
+      <div class="format-toggle" role="radiogroup" aria-label="Output format">
+        <label class="format-option">
+          <input type="radio" name="format" value="jpg" checked />
+          <span class="format-chip">
+            <i class="bi bi-image"></i>
+            <span>JPG</span>
+            <small>Smaller files</small>
+          </span>
+        </label>
+        <label class="format-option">
+          <input type="radio" name="format" value="png" />
+          <span class="format-chip">
+            <i class="bi bi-file-earmark-image"></i>
+            <span>PNG</span>
+            <small>Lossless</small>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label d-flex justify-content-between" for="quality">
+        <span>Image quality</span>
+        <span class="text-muted">
+          <span id="qualityValue">8</span> / 10
+        </span>
+      </label>
+      <input
+        type="range"
+        class="form-range custom-range"
+        id="quality"
+        name="quality"
+        min="1"
+        max="10"
+        step="1"
+        value="8"
+      />
+      <div class="form-help">10 is best quality &amp; largest file size.</div>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label" for="resizeWidth">Resize width (optional)</label>
+      <div class="input-group input-group-lg">
+        <input
+          type="number"
+          class="form-control"
+          id="resizeWidth"
+          name="resizeWidth"
+          min="32"
+          max="7680"
+          placeholder="Leave blank for original"
+        />
+        <span class="input-group-text">px</span>
+      </div>
+      <div class="form-help">Height is auto-scaled to preserve aspect ratio.</div>
+    </div>
+  </div>
+
+  <div class="options-actions">
+    <button type="button" class="btn btn-outline-secondary btn-pill" onclick="window.location='/'">
+      <i class="bi bi-arrow-left me-1"></i> Cancel
+    </button>
+    <button type="submit" class="btn btn-primary btn-lg btn-pill" id="startBtn">
+      <span class="btn-label">Start extraction</span>
+      <i class="bi bi-play-fill ms-1"></i>
+    </button>
+  </div>
+</form>
+
+<script src="/js/options.js"></script>
