@@ -273,10 +273,20 @@ video-to-image-app/
   with summary off to see what the transcript looks like.
 
 ### Transcript is slow on the first run
-- nodejs-whisper builds whisper.cpp on first use (~30-60 s) and downloads a
-  ~142 MB `base` model (one-time). Subsequent jobs start in seconds. To
-  pick a different model size, set `WHISPER_MODEL=small` (or `tiny`,
-  `medium`, `large`) in `.env`.
+- The local engine compiles on first use (~30-60 s) and downloads its
+  models on demand (~74 MB for English, ~1.6 GB for the multilingual
+  model). Subsequent jobs start in seconds.
+
+### Picking a different model size
+- The transcript flow auto-picks two models, one per language family:
+  - `WHISPER_MODEL_EN` (default `base.en`, ~74 MB) is used for English jobs.
+  - `WHISPER_MODEL_MULTILINGUAL` (default `large-v3-turbo`, ~1.6 GB) is
+    used for every other language. The smaller multilingual models
+    (`tiny`, `base`) are noticeably weak on non-Latin-script languages
+    like Hindi, Arabic, and Chinese, so the default trades disk for
+    quality. Override either variable in `.env` to pin a specific size.
+  - Choices: `tiny`, `tiny.en`, `base`, `base.en`, `small`, `small.en`,
+    `medium`, `medium.en`, `large-v3-turbo`, `large`.
 
 ---
 

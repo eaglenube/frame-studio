@@ -16,7 +16,24 @@ ffmpeg.setFfprobePath(ffprobeInstaller.path);
 // Where we cache the whisper.cpp models. Keeping them outside node_modules
 // means an `npm install` won't blow them away.
 const MODEL_ROOT = path.join(__dirname, '..', '.whisper-models');
-const MODEL_NAME = process.env.WHISPER_MODEL || 'base';
+
+// Model selection. The smaller multilingual models (tiny, base) are notably
+// poor on non-English audio — especially non-Latin-script languages like
+// Hindi — so we auto-pick a larger multilingual model for any non-English
+// job. English jobs stay on the fast English-specialised model.
+//
+// Override either of these via .env if you want to force a particular size:
+//   WHISPER_MODEL_EN=base.en
+//   WHISPER_MODEL_MULTILINGUAL=large-v3-turbo
+const MODEL_EN = process.env.WHISPER_MODEL_EN || 'base.en';
+const MODEL_MULTILINGUAL =
+  process.env.WHISPER_MODEL_MULTILINGUAL ||
+  process.env.WHISPER_MODEL ||
+  'large-v3-turbo';
+
+function pickModelFor(language) {
+  return language === 'en' ? MODEL_EN : MODEL_MULTILINGUAL;
+}
 
 const AUDIO_DIR = path.join(__dirname, '..', 'public', 'audio');
 
@@ -110,10 +127,11 @@ async function startTranscription(transcriptId) {
 
     // nodejs-whisper writes outputs next to the input file. We ask for both
     // JSON (for segments with timestamps) and TXT/SRT (for downloads).
+    const modelName = pickModelFor(t.language || 'en');
     await nodewhisper(audioPath, {
-      modelName: MODEL_NAME,
+      modelName,
       modelRootPath: MODEL_ROOT,
-      autoDownloadModelName: MODEL_NAME,
+      autoDownloadModelName: modelName,
       removeWavFileAfterTranscription: false,
       whisperOptions: {
         outputInJson: true,
