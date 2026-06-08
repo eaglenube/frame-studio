@@ -7,8 +7,9 @@
     Turn any video into <span class="gradient-text">crisp still frames</span>.
   </h1>
   <p class="hero-sub">
-    Drop a clip from your computer or pick one straight from Google Drive,
-    choose a frame rate, and download exactly the moments you need.
+    Drop a clip from your computer, pick one from Google Drive, or paste a
+    YouTube link &mdash; choose a frame rate and download exactly the
+    moments you need.
   </p>
 </section>
 
@@ -28,6 +29,13 @@
         <path fill="#ffba00" d="M73.4 26.5l-12.7-22a9.06 9.06 0 00-3.3-3.3L43.65 25 59.8 53h27.45c0-1.55-.4-3.1-1.2-4.5z"/>
       </svg>
       <span>From Google Drive</span>
+    </button>
+    <button type="button" class="source-tab" data-source="youtube" role="tab" aria-selected="false">
+      <svg width="18" height="14" viewBox="0 0 24 17" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path fill="#FF0000" d="M23.5 2.6a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.5A3 3 0 0 0 .5 2.6 31 31 0 0 0 0 8.5a31 31 0 0 0 .5 5.9 3 3 0 0 0 2.1 2.1C4.5 17 12 17 12 17s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 8.5a31 31 0 0 0-.5-5.9z"/>
+        <path fill="#fff" d="M9.6 12.1L15.8 8.5 9.6 4.9z"/>
+      </svg>
+      <span>From YouTube</span>
     </button>
   </div>
 
@@ -96,6 +104,54 @@
       <button type="button" class="btn-icon" id="clearDrivePick" aria-label="Remove file">
         <i class="bi bi-x-lg"></i>
       </button>
+    </div>
+  </div>
+
+  <div class="source-panel" data-source="youtube" hidden>
+    <div class="youtube-source">
+      <div class="youtube-source-head">
+        <div class="youtube-source-icon">
+          <svg width="24" height="18" viewBox="0 0 24 17" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill="#FF0000" d="M23.5 2.6a3 3 0 0 0-2.1-2.1C19.5 0 12 0 12 0S4.5 0 2.6.5A3 3 0 0 0 .5 2.6 31 31 0 0 0 0 8.5a31 31 0 0 0 .5 5.9 3 3 0 0 0 2.1 2.1C4.5 17 12 17 12 17s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 8.5a31 31 0 0 0-.5-5.9z"/>
+            <path fill="#fff" d="M9.6 12.1L15.8 8.5 9.6 4.9z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="youtube-source-title">Paste a YouTube video URL</h3>
+          <p class="youtube-source-sub">
+            We'll download it to our server temporarily, just long enough
+            to extract the frames you pick.
+          </p>
+        </div>
+      </div>
+
+      <div class="youtube-url-row">
+        <input
+          type="url"
+          id="youtubeUrl"
+          class="form-control youtube-url-input"
+          placeholder="https://www.youtube.com/watch?v=…"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button type="button" id="youtubeCheckBtn" class="btn btn-outline-primary btn-pill">
+          <i class="bi bi-search me-1"></i> Check
+        </button>
+      </div>
+
+      <div class="youtube-status" id="youtubeStatus" hidden></div>
+
+      <div class="youtube-preview" id="youtubePreview" hidden>
+        <img class="youtube-thumb" id="youtubeThumb" alt="" />
+        <div class="youtube-meta">
+          <div class="youtube-meta-title" id="youtubeTitle"></div>
+          <div class="youtube-meta-sub" id="youtubeAuthor"></div>
+          <div class="youtube-meta-sub text-muted" id="youtubeLength"></div>
+        </div>
+        <button type="button" class="btn-icon" id="clearYoutubePick" aria-label="Clear URL">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
   </div>
 

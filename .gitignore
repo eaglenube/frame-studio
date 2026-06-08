@@ -6,3 +6,5 @@ public/extracted/*
 !public/extracted/.gitkeep
 *.log
 .DS_Store
+test-vdo.mp4
+last_session.txt

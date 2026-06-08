@@ -1,9 +1,10 @@
 # Frame Studio — Video to Image Extractor
 
-A small, production-ready web app that lets you upload a video, choose extraction
-options (FPS, quality, format, resize), watch a live progress bar, browse the
-extracted frames in a gallery, download any subset as a ZIP, **or save selected
-frames directly to a folder in your Google Drive**.
+A small, production-ready web app that lets you upload a video from your
+computer, pull one out of your Google Drive, or paste a YouTube URL — then
+choose extraction options (FPS, quality, format, resize), watch a live progress
+bar, browse the extracted frames in a gallery, download any subset as a ZIP,
+**or save selected frames directly to a folder in your Google Drive**.
 
 Built with Express 5, Sequelize 6 (PostgreSQL), EJS, Bootstrap 5, Passport
 ("Sign in with Google"), the Google Drive API, and `fluent-ffmpeg` powered by the
@@ -16,8 +17,14 @@ system-wide.
 
 - **Node.js 18 or newer** (this project was built and tested on Node 22)
 - **PostgreSQL** running locally (or anywhere you can reach over the network)
+- **`yt-dlp`** (only if you want the *From YouTube* upload source). Install
+  with `brew install yt-dlp` on macOS, `pip install yt-dlp`, or grab a
+  pre-built binary from <https://github.com/yt-dlp/yt-dlp>. If yt-dlp isn't
+  on `PATH`, set `YT_DLP_PATH=/full/path/to/yt-dlp` in your `.env`. Without
+  yt-dlp the *From your computer* and *From Google Drive* sources still
+  work.
 
-That's it. FFmpeg ships inside `node_modules` automatically.
+FFmpeg ships inside `node_modules` automatically.
 
 ---
 
@@ -127,6 +134,11 @@ videos. Sign-in is only required for **importing from** or **saving to** Drive.
    - **From Google Drive** — click *Browse Drive*, sign in if you haven't,
      navigate to a video, click *Use this video*, then *Continue*. The video
      streams to the server and the rest of the flow is the same.
+   - **From YouTube** — paste a YouTube URL (watch, short, embed, or
+     `youtu.be` form), click *Check* to verify the video, then *Continue*.
+     The server downloads the clip temporarily, extracts the frames you
+     pick, and discards the source file along with the rest of the job
+     when you're done. No sign-in required. Live streams aren't supported.
 3. **Options** — choose frames-per-second (0.1–30), image quality (1–10),
    output format (JPG/PNG), and an optional resize width.
 4. **Progress** — watch the bar fill as FFmpeg extracts. The page polls the
@@ -222,6 +234,20 @@ video-to-image-app/
 - The stored access token may have expired and your account has no refresh
   token. Sign out, then sign in again — the consent screen will mint a new
   refresh token.
+
+### YouTube import fails with "Could not read that video" or similar
+- The video may be age-restricted, region-blocked, members-only, or a live
+  stream — none of those can be imported. Try a different URL.
+- YouTube occasionally changes their player internals, which can briefly
+  break the downloader. Update yt-dlp (`brew upgrade yt-dlp` or
+  `pip install -U yt-dlp`) and restart the server.
+- The video must fit within the `MAX_UPLOAD_MB` cap (default 500 MB).
+
+### YouTube import says "yt-dlp is not installed"
+- Install yt-dlp: `brew install yt-dlp` (macOS), `pip install yt-dlp`, or
+  download a binary from <https://github.com/yt-dlp/yt-dlp/releases>. If
+  it's installed but not on `PATH`, set `YT_DLP_PATH=/full/path/to/yt-dlp`
+  in `.env` and restart the server.
 
 ---
 
