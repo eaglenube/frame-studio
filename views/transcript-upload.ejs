@@ -1,0 +1,143 @@
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    <span>Transcript studio</span>
+  </div>
+  <h1 class="hero-title">
+    Turn any video into a <span class="gradient-text">readable transcript</span>.
+  </h1>
+  <p class="hero-sub">
+    Drop a clip, pick the spoken language, and we'll transcribe it locally
+    &mdash; no data leaves your machine. Optionally get a tidy AI summary
+    tailored to the kind of recording it is.
+  </p>
+</section>
+
+<%
+  const LANGUAGE_LABELS = {
+    auto: 'Auto-detect',
+    en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
+    pt: 'Portuguese', nl: 'Dutch', pl: 'Polish', ru: 'Russian', uk: 'Ukrainian',
+    tr: 'Turkish', zh: 'Chinese', ja: 'Japanese', ko: 'Korean', ar: 'Arabic',
+    hi: 'Hindi', bn: 'Bengali', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
+    ur: 'Urdu', id: 'Indonesian', th: 'Thai', vi: 'Vietnamese', sv: 'Swedish',
+    no: 'Norwegian', da: 'Danish', fi: 'Finnish', cs: 'Czech', el: 'Greek',
+    he: 'Hebrew',
+  };
+  const SUMMARY_LABELS = {
+    off: 'Off — transcript only',
+    general: 'General overview',
+    meeting: 'Meeting notes',
+    interview: 'Interview highlights',
+    podcast: 'Podcast recap',
+    news: 'News brief',
+  };
+%>
+
+<form id="transcriptForm" class="upload-card" novalidate>
+  <div class="source-panel" data-source="local">
+    <div id="dropzone" class="dropzone" tabindex="0">
+      <input
+        type="file"
+        id="videoInput"
+        name="video"
+        accept=".mp4,.mov,.avi,.mkv,.webm,.m4v,.mp3,.wav,.m4a,.aac,.ogg,.flac,video/*,audio/*"
+        hidden
+      />
+      <div class="dropzone-inner" id="dropzoneIdle">
+        <div class="dropzone-icon">
+          <i class="bi bi-mic-fill"></i>
+        </div>
+        <h3 class="dropzone-title">Drop a video or audio file here</h3>
+        <p class="dropzone-sub">
+          or <button type="button" id="pickFileBtn" class="link-btn">click to browse</button>
+        </p>
+        <ul class="dropzone-meta">
+          <li><i class="bi bi-check2"></i> MP4 · MOV · MKV · WEBM · MP3 · WAV · M4A</li>
+          <li><i class="bi bi-check2"></i> Up to <%= maxUploadMb %> MB</li>
+        </ul>
+      </div>
+
+      <div class="dropzone-file" id="dropzoneFile" hidden>
+        <div class="file-icon"><i class="bi bi-file-earmark-music"></i></div>
+        <div class="file-info">
+          <div class="file-name" id="fileName"></div>
+          <div class="file-size text-muted" id="fileSize"></div>
+        </div>
+        <button type="button" class="btn-icon" id="clearFile" aria-label="Remove file">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="transcript-options">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label for="language" class="form-label">Audio language</label>
+        <select class="form-select" id="language" name="language">
+          <% languages.forEach(function (code) { %>
+            <option value="<%= code %>" <%= code === 'en' ? 'selected' : '' %>>
+              <%= LANGUAGE_LABELS[code] || code %>
+            </option>
+          <% }) %>
+        </select>
+        <small class="text-muted">Default is English. Pick "Auto-detect" if you're not sure.</small>
+      </div>
+      <div class="col-md-6">
+        <label for="summaryType" class="form-label">
+          AI summary
+          <span class="badge bg-light text-secondary border ms-1">Optional</span>
+        </label>
+        <select class="form-select" id="summaryType" name="summaryType">
+          <% summaryStyles.forEach(function (s) { %>
+            <option value="<%= s %>" <%= s === 'off' ? 'selected' : '' %>>
+              <%= SUMMARY_LABELS[s] || s %>
+            </option>
+          <% }) %>
+        </select>
+        <small class="text-muted">Off by default. Requires <code>ANTHROPIC_API_KEY</code> in <code>.env</code>.</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="upload-progress" id="uploadProgressWrap" hidden>
+    <div class="progress" style="height: 10px;">
+      <div id="uploadProgressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-2">
+      <small class="text-muted" id="uploadProgressLabel">Uploading…</small>
+      <small class="text-muted" id="uploadProgressPct">0%</small>
+    </div>
+  </div>
+
+  <div class="upload-actions">
+    <button type="submit" class="btn btn-primary btn-lg btn-pill" id="continueBtn" disabled>
+      <span class="btn-label">Transcribe</span>
+      <i class="bi bi-arrow-right ms-2"></i>
+    </button>
+  </div>
+</form>
+
+<section class="features-grid">
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-shield-lock"></i></div>
+    <h4>Stays on your machine</h4>
+    <p>Transcription runs locally — your audio never leaves your server.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-translate"></i></div>
+    <h4>~100 languages</h4>
+    <p>Pick the spoken language, or let auto-detect figure it out.</p>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon"><i class="bi bi-list-stars"></i></div>
+    <h4>Smart summaries</h4>
+    <p>Optional Claude summaries tuned for meetings, interviews, podcasts, and news.</p>
+  </div>
+</section>
+
+<script>
+  window.__MAX_UPLOAD_MB__ = <%= maxUploadMb %>;
+</script>
+<script src="/js/transcript-upload.js"></script>

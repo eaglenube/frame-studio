@@ -1,10 +1,17 @@
-# Frame Studio — Video to Image Extractor
+# Frame Studio — Video to Image Extractor & Transcript Generator
 
-A small, production-ready web app that lets you upload a video from your
-computer, pull one out of your Google Drive, or paste a YouTube URL — then
-choose extraction options (FPS, quality, format, resize), watch a live progress
-bar, browse the extracted frames in a gallery, download any subset as a ZIP,
-**or save selected frames directly to a folder in your Google Drive**.
+A small, production-ready web app with two tools:
+
+- **Extract Frames** — upload a video from your computer, pull one out of
+  your Google Drive, or paste a YouTube URL, then choose extraction options
+  (FPS, quality, format, resize), watch a live progress bar, browse the
+  extracted frames in a gallery, download any subset as a ZIP, **or save
+  selected frames directly to a folder in your Google Drive**.
+- **Generate Transcript** — drop a video or audio file, pick the spoken
+  language, and get a timestamped transcript produced by a **local Whisper
+  model** (no audio leaves your machine). Optionally have **Anthropic
+  Claude** turn the transcript into a structured summary tuned for meetings,
+  interviews, podcasts, or news.
 
 Built with Express 5, Sequelize 6 (PostgreSQL), EJS, Bootstrap 5, Passport
 ("Sign in with Google"), the Google Drive API, and `fluent-ffmpeg` powered by the
@@ -17,12 +24,18 @@ system-wide.
 
 - **Node.js 18 or newer** (this project was built and tested on Node 22)
 - **PostgreSQL** running locally (or anywhere you can reach over the network)
-- **`yt-dlp`** (only if you want the *From YouTube* upload source). Install
-  with `brew install yt-dlp` on macOS, `pip install yt-dlp`, or grab a
-  pre-built binary from <https://github.com/yt-dlp/yt-dlp>. If yt-dlp isn't
-  on `PATH`, set `YT_DLP_PATH=/full/path/to/yt-dlp` in your `.env`. Without
-  yt-dlp the *From your computer* and *From Google Drive* sources still
-  work.
+- **`yt-dlp`** *(only for the "From YouTube" upload source)*. Install with
+  `brew install yt-dlp` on macOS, `pip install yt-dlp`, or grab a pre-built
+  binary from <https://github.com/yt-dlp/yt-dlp>. If yt-dlp isn't on `PATH`,
+  set `YT_DLP_PATH=/full/path/to/yt-dlp` in your `.env`.
+- **`cmake`** + a C++ compiler *(only for the Transcript feature)*. macOS:
+  `brew install cmake` and run `xcode-select --install` once if you haven't.
+  Linux: `apt install build-essential cmake`. nodejs-whisper builds
+  whisper.cpp the first time you transcribe.
+- **An Anthropic API key** *(optional — only if you want the AI summary
+  option in the transcript flow)*. Get one at
+  <https://console.anthropic.com/> and put it in `.env` as
+  `ANTHROPIC_API_KEY=...`.
 
 FFmpeg ships inside `node_modules` automatically.
 
@@ -248,6 +261,22 @@ video-to-image-app/
   download a binary from <https://github.com/yt-dlp/yt-dlp/releases>. If
   it's installed but not on `PATH`, set `YT_DLP_PATH=/full/path/to/yt-dlp`
   in `.env` and restart the server.
+
+### Transcript step says "cmake: command not found" or build fails
+- Install cmake: `brew install cmake` on macOS, `apt install cmake
+  build-essential` on Debian/Ubuntu. The very first transcription builds
+  whisper.cpp from source — this can take 30-60 s and only happens once.
+
+### Transcript: AI summary fails with "requires an Anthropic API key"
+- Put `ANTHROPIC_API_KEY=sk-ant-...` in `.env` and restart the server. The
+  transcript is still saved even when the summary fails, so you can re-run
+  with summary off to see what the transcript looks like.
+
+### Transcript is slow on the first run
+- nodejs-whisper builds whisper.cpp on first use (~30-60 s) and downloads a
+  ~142 MB `base` model (one-time). Subsequent jobs start in seconds. To
+  pick a different model size, set `WHISPER_MODEL=small` (or `tiny`,
+  `medium`, `large`) in `.env`.
 
 ---
 

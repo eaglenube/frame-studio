@@ -4,6 +4,9 @@ public/uploads/*
 !public/uploads/.gitkeep
 public/extracted/*
 !public/extracted/.gitkeep
+public/audio/*
+!public/audio/.gitkeep
+.whisper-models/
 *.log
 .DS_Store
 test-vdo.mp4

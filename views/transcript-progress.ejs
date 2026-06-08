@@ -1,0 +1,60 @@
+<section class="page-header">
+  <h1 class="page-title">Transcribing…</h1>
+  <p class="page-sub">
+    From <strong><%= transcript.originalFilename %></strong>
+  </p>
+</section>
+
+<div class="progress-card" data-transcript-id="<%= transcript.id %>">
+  <div class="progress-visual">
+    <div class="pulse-ring">
+      <i class="bi bi-mic-fill"></i>
+    </div>
+  </div>
+
+  <div class="progress-stage" id="stageLabel">Preparing…</div>
+
+  <div class="progress big-progress" style="height: 18px;">
+    <div
+      id="bigProgressBar"
+      class="progress-bar progress-bar-striped progress-bar-animated"
+      role="progressbar"
+      style="width: 0%"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    ></div>
+  </div>
+
+  <div class="progress-meta">
+    <div>
+      <div class="meta-label">Progress</div>
+      <div class="meta-value"><span id="progressPct">0</span>%</div>
+    </div>
+    <div>
+      <div class="meta-label">Stage</div>
+      <div class="meta-value text-capitalize" id="statusLabel">pending</div>
+    </div>
+    <div>
+      <div class="meta-label">AI summary</div>
+      <div class="meta-value text-capitalize"><%= transcript.summaryType %></div>
+    </div>
+  </div>
+
+  <div class="progress-note text-muted">
+    Transcription runs locally on this server. The very first job has a
+    one-time setup step and can take a couple of minutes; after that, jobs
+    start in seconds.
+  </div>
+
+  <div class="progress-error d-none" id="errorBox">
+    <i class="bi bi-exclamation-octagon"></i>
+    <div>
+      <strong>Transcription failed.</strong>
+      <div id="errorMessage" class="text-muted small"></div>
+    </div>
+    <a href="/transcript" class="btn btn-outline-primary btn-sm btn-pill ms-auto">Try again</a>
+  </div>
+</div>
+
+<script src="/js/transcript-progress.js"></script>

@@ -7,6 +7,7 @@ const processRoutes = require('./process');
 const downloadRoutes = require('./download');
 const driveRoutes = require('./drive');
 const youtubeRoutes = require('./youtube');
+const transcriptRoutes = require('./transcript');
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.use(processRoutes);
 router.use(downloadRoutes);
 router.use(driveRoutes);
 router.use(youtubeRoutes);
+router.use(transcriptRoutes);
 
 module.exports = router;

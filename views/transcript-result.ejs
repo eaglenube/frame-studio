@@ -1,0 +1,125 @@
+<%
+  function fmtTime(sec) {
+    if (sec == null || isNaN(sec)) return '';
+    sec = Math.max(0, Math.floor(sec));
+    var h = Math.floor(sec / 3600);
+    var m = Math.floor((sec % 3600) / 60);
+    var s = sec % 60;
+    var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+    return h > 0 ? h + ':' + pad(m) + ':' + pad(s) : m + ':' + pad(s);
+  }
+  const segments = transcript.transcriptSegments || [];
+  const failed = transcript.status === 'failed';
+%>
+
+<section class="transcript-header">
+  <div>
+    <h1 class="page-title mb-1">
+      <i class="bi bi-mic-fill text-primary me-2"></i>
+      Transcript
+    </h1>
+    <div class="text-muted">
+      From <strong><%= transcript.originalFilename %></strong>
+      <% if (transcript.durationSeconds) { %>
+        · <%= fmtTime(transcript.durationSeconds) %>
+      <% } %>
+      · language <code><%= transcript.language %></code>
+    </div>
+  </div>
+
+  <% if (!failed) { %>
+    <div class="transcript-actions">
+      <button
+        type="button"
+        class="btn btn-outline-primary btn-pill"
+        id="copyTranscriptBtn"
+      >
+        <i class="bi bi-clipboard me-1"></i>
+        <span class="copy-label">Copy</span>
+      </button>
+      <a class="btn btn-outline-primary btn-pill" href="/api/transcripts/<%= transcript.id %>/download?format=txt">
+        <i class="bi bi-download me-1"></i> .txt
+      </a>
+      <% if (transcript.transcriptSrt) { %>
+        <a class="btn btn-outline-primary btn-pill" href="/api/transcripts/<%= transcript.id %>/download?format=srt">
+          <i class="bi bi-card-text me-1"></i> .srt
+        </a>
+      <% } %>
+      <% if (transcript.summary) { %>
+        <a class="btn btn-outline-primary btn-pill" href="/api/transcripts/<%= transcript.id %>/download?format=md">
+          <i class="bi bi-markdown me-1"></i> summary
+        </a>
+      <% } %>
+    </div>
+  <% } %>
+</section>
+
+<% if (failed) { %>
+  <div class="progress-error mt-3">
+    <i class="bi bi-exclamation-octagon"></i>
+    <div>
+      <strong>Transcription failed.</strong>
+      <div class="text-muted small"><%= transcript.errorMessage || 'Unknown error.' %></div>
+    </div>
+    <a href="/transcript" class="btn btn-outline-primary btn-sm btn-pill ms-auto">Try again</a>
+  </div>
+<% } else { %>
+
+  <% if (transcript.summary) { %>
+    <section class="summary-panel">
+      <div class="summary-head">
+        <h2 class="summary-title">
+          <i class="bi bi-stars text-primary me-2"></i>
+          AI summary
+          <span class="badge bg-light text-secondary border ms-1"><%= transcript.summaryType %></span>
+        </h2>
+      </div>
+      <article class="summary-body" id="summaryBody"><%- transcript.summary %></article>
+    </section>
+  <% } else if (transcript.summaryType !== 'off' && transcript.errorMessage) { %>
+    <div class="alert alert-warning d-flex align-items-start gap-2">
+      <i class="bi bi-exclamation-triangle"></i>
+      <div>
+        <strong>Summary unavailable.</strong>
+        <div class="small"><%= transcript.errorMessage %></div>
+      </div>
+    </div>
+  <% } %>
+
+  <section class="transcript-panel">
+    <div class="transcript-head">
+      <h2 class="transcript-title">
+        <i class="bi bi-file-text text-primary me-2"></i>
+        Transcript
+        <% if (segments.length > 0) { %>
+          <small class="text-muted ms-2"><%= segments.length %> segments</small>
+        <% } %>
+      </h2>
+      <div class="transcript-tabs" role="tablist">
+        <button type="button" class="transcript-tab is-active" data-view="segments" role="tab">Timestamps</button>
+        <button type="button" class="transcript-tab" data-view="text" role="tab">Plain text</button>
+      </div>
+    </div>
+
+    <div class="transcript-body" data-view="segments">
+      <% if (segments.length > 0) { %>
+        <ol class="transcript-segments">
+          <% segments.forEach(function (seg) { %>
+            <li class="transcript-segment">
+              <span class="seg-time"><%= fmtTime(seg.start) %></span>
+              <span class="seg-text"><%= seg.text %></span>
+            </li>
+          <% }) %>
+        </ol>
+      <% } else { %>
+        <pre class="transcript-plain"><%= transcript.transcriptText %></pre>
+      <% } %>
+    </div>
+
+    <div class="transcript-body" data-view="text" hidden>
+      <pre class="transcript-plain"><%= transcript.transcriptText %></pre>
+    </div>
+  </section>
+<% } %>
+
+<script src="/js/transcript-result.js"></script>

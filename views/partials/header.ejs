@@ -7,11 +7,15 @@
       <span class="brand-name">Frame Studio</span>
     </a>
     <nav class="app-nav d-flex align-items-center gap-2">
+      <a href="/" class="nav-link nav-tab d-none d-md-inline-flex">
+        <i class="bi bi-film"></i>
+        <span>Frames</span>
+      </a>
+      <a href="/transcript" class="nav-link nav-tab d-none d-md-inline-flex">
+        <i class="bi bi-mic"></i>
+        <span>Transcript</span>
+      </a>
       <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-        <a href="/" class="nav-link d-none d-md-inline-flex">
-          <i class="bi bi-cloud-upload"></i>
-          <span>New Extraction</span>
-        </a>
         <div class="user-chip dropdown">
           <button class="user-chip-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <% if (currentUser.picture) { %>
