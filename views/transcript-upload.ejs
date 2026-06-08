@@ -76,13 +76,16 @@
       <div class="col-md-6">
         <label for="language" class="form-label">Audio language</label>
         <select class="form-select" id="language" name="language">
-          <% languages.forEach(function (code) { %>
-            <option value="<%= code %>" <%= code === 'en' ? 'selected' : '' %>>
+          <% languages.forEach(function (code, idx) { %>
+            <option value="<%= code %>" <%= code === 'auto' ? 'selected' : '' %>>
               <%= LANGUAGE_LABELS[code] || code %>
             </option>
+            <% if (idx === 0) { %>
+              <option disabled>──────────</option>
+            <% } %>
           <% }) %>
         </select>
-        <small class="text-muted">Default is English. Pick "Auto-detect" if you're not sure.</small>
+        <small class="text-muted">Auto-detect figures out the spoken language from the first few seconds. Pick a specific language if you want to override it.</small>
       </div>
       <div class="col-md-6">
         <label for="summaryType" class="form-label">

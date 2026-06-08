@@ -17,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 'en',
       },
+      detectedLanguage: {
+        type: DataTypes.STRING(10),
+        allowNull: true,
+      },
       summaryType: {
         type: DataTypes.ENUM('off', 'general', 'meeting', 'interview', 'podcast', 'news'),
         allowNull: false,

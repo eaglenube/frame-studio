@@ -13,10 +13,14 @@ const UPLOAD_DIR = path.join(__dirname, '..', 'public', 'uploads');
 
 const ALLOWED_EXT = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v', '.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'];
 
+// Order matters here — the upload page renders the dropdown in this order
+// and selects the FIRST entry by default, so 'auto' sits at the top to make
+// auto-detect the default choice.
 const ALLOWED_LANGUAGES = [
+  'auto',
   'en', 'es', 'fr', 'de', 'it', 'pt', 'nl', 'pl', 'ru', 'uk', 'tr',
   'zh', 'ja', 'ko', 'ar', 'hi', 'bn', 'ta', 'te', 'mr', 'ur',
-  'id', 'th', 'vi', 'sv', 'no', 'da', 'fi', 'cs', 'el', 'he', 'auto',
+  'id', 'th', 'vi', 'sv', 'no', 'da', 'fi', 'cs', 'el', 'he',
 ];
 
 const ALLOWED_SUMMARY = ['off', 'general', 'meeting', 'interview', 'podcast', 'news'];
@@ -60,7 +64,7 @@ async function handleUpload(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
 
-    const language = ALLOWED_LANGUAGES.includes(req.body.language) ? req.body.language : 'en';
+    const language = ALLOWED_LANGUAGES.includes(req.body.language) ? req.body.language : 'auto';
     const summaryType = ALLOWED_SUMMARY.includes(req.body.summaryType) ? req.body.summaryType : 'off';
 
     const transcript = await Transcript.create({

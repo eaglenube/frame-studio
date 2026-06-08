@@ -8,8 +8,21 @@
     var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
     return h > 0 ? h + ':' + pad(m) + ':' + pad(s) : m + ':' + pad(s);
   }
+  const LANG_LABELS = {
+    auto: 'Auto-detect',
+    en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
+    pt: 'Portuguese', nl: 'Dutch', pl: 'Polish', ru: 'Russian', uk: 'Ukrainian',
+    tr: 'Turkish', zh: 'Chinese', ja: 'Japanese', ko: 'Korean', ar: 'Arabic',
+    hi: 'Hindi', bn: 'Bengali', ta: 'Tamil', te: 'Telugu', mr: 'Marathi',
+    ur: 'Urdu', id: 'Indonesian', th: 'Thai', vi: 'Vietnamese', sv: 'Swedish',
+    no: 'Norwegian', da: 'Danish', fi: 'Finnish', cs: 'Czech', el: 'Greek',
+    he: 'Hebrew',
+  };
+  function langLabel(code) { return LANG_LABELS[code] || code; }
   const segments = transcript.transcriptSegments || [];
   const failed = transcript.status === 'failed';
+  const wasAuto = transcript.language === 'auto';
+  const detected = transcript.detectedLanguage;
 %>
 
 <section class="transcript-header">
@@ -18,12 +31,27 @@
       <i class="bi bi-mic-fill text-primary me-2"></i>
       Transcript
     </h1>
-    <div class="text-muted">
+    <div class="text-muted transcript-meta">
       From <strong><%= transcript.originalFilename %></strong>
       <% if (transcript.durationSeconds) { %>
         · <%= fmtTime(transcript.durationSeconds) %>
       <% } %>
-      · language <code><%= transcript.language %></code>
+      <% if (wasAuto && detected) { %>
+        · <span class="lang-detected" title="Detected automatically from the audio">
+            <i class="bi bi-magic me-1"></i>Detected: <strong><%= langLabel(detected) %></strong>
+          </span>
+      <% } else if (wasAuto) { %>
+        · <span class="lang-detected">
+            <i class="bi bi-magic me-1"></i>Auto-detected
+          </span>
+      <% } else { %>
+        · Language: <strong><%= langLabel(transcript.language) %></strong>
+        <% if (detected && detected !== transcript.language) { %>
+          <span class="text-warning ms-1" title="Audio sounded more like this language than the one you picked">
+            (audio sounds like <%= langLabel(detected) %>)
+          </span>
+        <% } %>
+      <% } %>
     </div>
   </div>
 

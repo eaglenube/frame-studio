@@ -67,7 +67,7 @@ function extractAudio(videoPath, audioPath) {
 }
 
 // Read the .json output that whisper.cpp writes next to the audio file.
-// Returns { segments, text } or null if absent / unparseable.
+// Returns { segments, text, detectedLanguage } or null if absent / unparseable.
 function readWhisperOutput(audioPath) {
   // whisper.cpp writes results as <audioPath>.<ext>
   const jsonPath = audioPath + '.json';
@@ -81,7 +81,14 @@ function readWhisperOutput(audioPath) {
       text: (s.text || '').trim(),
     }));
     const text = segments.map((s) => s.text).join(' ').trim();
-    return { segments, text };
+    // whisper.cpp echoes the detected language (or the one we forced) in
+    // result.language. When we passed -l auto, this is genuinely what it
+    // decided after running a quick language-id pass on the first 30s.
+    const detectedLanguage =
+      (raw.result && raw.result.language) ||
+      (raw.params && raw.params.language) ||
+      null;
+    return { segments, text, detectedLanguage };
   } catch (err) {
     return null;
   }
@@ -146,15 +153,17 @@ async function startTranscription(transcriptId) {
     const text = (parsed && parsed.text) || readWhisperText(audioPath) || '';
     const segments = (parsed && parsed.segments) || [];
     const srt = readWhisperSrt(audioPath) || null;
+    const detectedLanguage = parsed && parsed.detectedLanguage;
 
     if (!text) {
-      throw new Error('Whisper produced no transcript text.');
+      throw new Error('Transcription produced no text.');
     }
 
     await t.update({
       transcriptText: text,
       transcriptSrt: srt,
       transcriptSegments: segments,
+      detectedLanguage,
       progress: t.summaryType === 'off' ? 100 : 75,
     });
 
